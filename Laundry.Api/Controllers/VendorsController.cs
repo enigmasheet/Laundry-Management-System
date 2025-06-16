@@ -1,12 +1,11 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Swashbuckle.AspNetCore.Annotations;
+using Laundry.Api.Data;
+using Laundry.Api.Models;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Laundry.Api.Data;
-using Laundry.Api.Models;
 
 namespace Laundry.Api.Controllers
 {
@@ -21,15 +20,24 @@ namespace Laundry.Api.Controllers
             _context = context;
         }
 
-        // GET: api/Vendors
+        /// <summary>
+        /// Get all vendors.
+        /// </summary>
         [HttpGet]
+        [SwaggerOperation(Summary = "Get all vendors", Description = "Retrieves a list of all vendors.")]
+        [SwaggerResponse(200, "List of vendors retrieved successfully.")]
         public async Task<ActionResult<IEnumerable<Vendor>>> GetVendors()
         {
             return await _context.Vendors.ToListAsync();
         }
 
-        // GET: api/Vendors/5
+        /// <summary>
+        /// Get a vendor by ID.
+        /// </summary>
         [HttpGet("{id}")]
+        [SwaggerOperation(Summary = "Get vendor by ID", Description = "Retrieves a specific vendor by their ID.")]
+        [SwaggerResponse(200, "Vendor retrieved successfully.")]
+        [SwaggerResponse(404, "Vendor not found.")]
         public async Task<ActionResult<Vendor>> GetVendor(int id)
         {
             var vendor = await _context.Vendors.FindAsync(id);
@@ -42,9 +50,14 @@ namespace Laundry.Api.Controllers
             return vendor;
         }
 
-        // PUT: api/Vendors/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        /// <summary>
+        /// Update an existing vendor.
+        /// </summary>
         [HttpPut("{id}")]
+        [SwaggerOperation(Summary = "Update a vendor", Description = "Updates the vendor details for the specified ID.")]
+        [SwaggerResponse(204, "Vendor updated successfully.")]
+        [SwaggerResponse(400, "Invalid request. ID mismatch.")]
+        [SwaggerResponse(404, "Vendor not found.")]
         public async Task<IActionResult> PutVendor(int id, Vendor vendor)
         {
             if (id != vendor.Id)
@@ -73,19 +86,27 @@ namespace Laundry.Api.Controllers
             return NoContent();
         }
 
-        // POST: api/Vendors
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        /// <summary>
+        /// Create a new vendor.
+        /// </summary>
         [HttpPost]
+        [SwaggerOperation(Summary = "Create a new vendor", Description = "Adds a new vendor to the system.")]
+        [SwaggerResponse(201, "Vendor created successfully.")]
         public async Task<ActionResult<Vendor>> PostVendor(Vendor vendor)
         {
             _context.Vendors.Add(vendor);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetVendor", new { id = vendor.Id }, vendor);
+            return CreatedAtAction(nameof(GetVendor), new { id = vendor.Id }, vendor);
         }
 
-        // DELETE: api/Vendors/5
+        /// <summary>
+        /// Delete a vendor by ID.
+        /// </summary>
         [HttpDelete("{id}")]
+        [SwaggerOperation(Summary = "Delete a vendor", Description = "Deletes the vendor with the specified ID.")]
+        [SwaggerResponse(204, "Vendor deleted successfully.")]
+        [SwaggerResponse(404, "Vendor not found.")]
         public async Task<IActionResult> DeleteVendor(int id)
         {
             var vendor = await _context.Vendors.FindAsync(id);

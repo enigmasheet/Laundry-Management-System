@@ -1,12 +1,11 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Swashbuckle.AspNetCore.Annotations;
+using Laundry.Api.Data;
+using Laundry.Api.Models;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Laundry.Api.Data;
-using Laundry.Api.Models;
 
 namespace Laundry.Api.Controllers
 {
@@ -21,15 +20,24 @@ namespace Laundry.Api.Controllers
             _context = context;
         }
 
-        // GET: api/VendorInquiries
+        /// <summary>
+        /// Retrieves all vendor inquiries.
+        /// </summary>
         [HttpGet]
+        [SwaggerOperation(Summary = "Get all vendor inquiries", Description = "Retrieve a list of all vendor inquiries.")]
+        [SwaggerResponse(200, "List of vendor inquiries retrieved successfully.")]
         public async Task<ActionResult<IEnumerable<VendorInquiry>>> GetVendorInquiries()
         {
             return await _context.VendorInquiries.ToListAsync();
         }
 
-        // GET: api/VendorInquiries/5
+        /// <summary>
+        /// Retrieves a vendor inquiry by ID.
+        /// </summary>
         [HttpGet("{id}")]
+        [SwaggerOperation(Summary = "Get vendor inquiry by ID", Description = "Retrieve a specific vendor inquiry by its ID.")]
+        [SwaggerResponse(200, "Vendor inquiry retrieved successfully.")]
+        [SwaggerResponse(404, "Vendor inquiry not found.")]
         public async Task<ActionResult<VendorInquiry>> GetVendorInquiry(int id)
         {
             var vendorInquiry = await _context.VendorInquiries.FindAsync(id);
@@ -42,9 +50,14 @@ namespace Laundry.Api.Controllers
             return vendorInquiry;
         }
 
-        // PUT: api/VendorInquiries/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        /// <summary>
+        /// Updates a vendor inquiry by ID.
+        /// </summary>
         [HttpPut("{id}")]
+        [SwaggerOperation(Summary = "Update vendor inquiry", Description = "Update an existing vendor inquiry with the specified ID.")]
+        [SwaggerResponse(204, "Vendor inquiry updated successfully.")]
+        [SwaggerResponse(400, "Invalid request - ID mismatch.")]
+        [SwaggerResponse(404, "Vendor inquiry not found.")]
         public async Task<IActionResult> PutVendorInquiry(int id, VendorInquiry vendorInquiry)
         {
             if (id != vendorInquiry.Id)
@@ -73,19 +86,27 @@ namespace Laundry.Api.Controllers
             return NoContent();
         }
 
-        // POST: api/VendorInquiries
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        /// <summary>
+        /// Creates a new vendor inquiry.
+        /// </summary>
         [HttpPost]
+        [SwaggerOperation(Summary = "Create vendor inquiry", Description = "Add a new vendor inquiry.")]
+        [SwaggerResponse(201, "Vendor inquiry created successfully.")]
         public async Task<ActionResult<VendorInquiry>> PostVendorInquiry(VendorInquiry vendorInquiry)
         {
             _context.VendorInquiries.Add(vendorInquiry);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetVendorInquiry", new { id = vendorInquiry.Id }, vendorInquiry);
+            return CreatedAtAction(nameof(GetVendorInquiry), new { id = vendorInquiry.Id }, vendorInquiry);
         }
 
-        // DELETE: api/VendorInquiries/5
+        /// <summary>
+        /// Deletes a vendor inquiry by ID.
+        /// </summary>
         [HttpDelete("{id}")]
+        [SwaggerOperation(Summary = "Delete vendor inquiry", Description = "Delete the vendor inquiry with the specified ID.")]
+        [SwaggerResponse(204, "Vendor inquiry deleted successfully.")]
+        [SwaggerResponse(404, "Vendor inquiry not found.")]
         public async Task<IActionResult> DeleteVendorInquiry(int id)
         {
             var vendorInquiry = await _context.VendorInquiries.FindAsync(id);
