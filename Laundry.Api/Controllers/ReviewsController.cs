@@ -1,12 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using Laundry.Api.Data;
+using Laundry.Api.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Laundry.Api.Data;
-using Laundry.Api.Models;
+using Swashbuckle.AspNetCore.Annotations;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace Laundry.Api.Controllers
 {
@@ -20,16 +21,25 @@ namespace Laundry.Api.Controllers
         {
             _context = context;
         }
-
-        // GET: api/Reviews
+       
+        /// <summary>
+        /// Get all reviews.
+        /// </summary>
         [HttpGet]
+        [SwaggerOperation(Summary = "Get all reviews", Description = "Retrieves a list of all customer reviews.")]
+        [SwaggerResponse(200, "List of reviews retrieved successfully.")]
         public async Task<ActionResult<IEnumerable<Review>>> GetReviews()
         {
             return await _context.Reviews.ToListAsync();
         }
 
-        // GET: api/Reviews/5
+        /// <summary>
+        /// Get a review by ID.
+        /// </summary>
         [HttpGet("{id}")]
+        [SwaggerOperation(Summary = "Get a review by ID", Description = "Retrieves a specific review by its unique ID.")]
+        [SwaggerResponse(200, "Review retrieved successfully.")]
+        [SwaggerResponse(404, "Review not found.")]
         public async Task<ActionResult<Review>> GetReview(int id)
         {
             var review = await _context.Reviews.FindAsync(id);
@@ -42,9 +52,14 @@ namespace Laundry.Api.Controllers
             return review;
         }
 
-        // PUT: api/Reviews/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        /// <summary>
+        /// Update an existing review.
+        /// </summary>
         [HttpPut("{id}")]
+        [SwaggerOperation(Summary = "Update a review", Description = "Updates the review with the specified ID.")]
+        [SwaggerResponse(204, "Review updated successfully.")]
+        [SwaggerResponse(400, "Bad request. The ID does not match.")]
+        [SwaggerResponse(404, "Review not found.")]
         public async Task<IActionResult> PutReview(int id, Review review)
         {
             if (id != review.Id)
@@ -72,10 +87,13 @@ namespace Laundry.Api.Controllers
 
             return NoContent();
         }
-
-        // POST: api/Reviews
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        
+        /// <summary>
+        /// Create a new review.
+        /// </summary>
         [HttpPost]
+        [SwaggerOperation(Summary = "Create a new review", Description = "Adds a new review to the system.")]
+        [SwaggerResponse(201, "Review created successfully.")]
         public async Task<ActionResult<Review>> PostReview(Review review)
         {
             _context.Reviews.Add(review);
@@ -84,8 +102,13 @@ namespace Laundry.Api.Controllers
             return CreatedAtAction("GetReview", new { id = review.Id }, review);
         }
 
-        // DELETE: api/Reviews/5
+        /// <summary>
+        /// Delete a review by ID.
+        /// </summary>
         [HttpDelete("{id}")]
+        [SwaggerOperation(Summary = "Delete a review", Description = "Deletes the review with the specified ID.")]
+        [SwaggerResponse(204, "Review deleted successfully.")]
+        [SwaggerResponse(404, "Review not found.")]
         public async Task<IActionResult> DeleteReview(int id)
         {
             var review = await _context.Reviews.FindAsync(id);
@@ -99,7 +122,9 @@ namespace Laundry.Api.Controllers
 
             return NoContent();
         }
-
+        /// <summary>
+        /// Check if a review exists.
+        /// </summary>
         private bool ReviewExists(int id)
         {
             return _context.Reviews.Any(e => e.Id == id);

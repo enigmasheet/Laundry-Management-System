@@ -30,8 +30,17 @@ namespace Laundry.Api
                 c.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
                 {
                     Title = "Laundry API",
-                    Version = "v1"
+                    Version = "v1",
+                    Description = "An API for managing laundry orders, items, and more"
                 });
+
+                // Include XML comments (ensure XML doc generation is on)
+                var xmlFile = $"{System.Reflection.Assembly.GetExecutingAssembly().GetName().Name}.xml";
+                var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+                c.IncludeXmlComments(xmlPath);
+
+                // Enable Swagger Annotations (if you want to use [SwaggerOperation])
+                c.EnableAnnotations(); 
             });
 
             var app = builder.Build();

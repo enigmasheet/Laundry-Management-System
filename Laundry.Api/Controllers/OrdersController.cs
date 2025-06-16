@@ -1,12 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
+﻿using Laundry.Api.Data;
+using Laundry.Api.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Laundry.Api.Data;
-using Laundry.Api.Models;
+using Swashbuckle.AspNetCore.Annotations;
 
 namespace Laundry.Api.Controllers
 {
@@ -21,15 +17,24 @@ namespace Laundry.Api.Controllers
             _context = context;
         }
 
-        // GET: api/Orders
+        /// <summary>
+        /// Get all orders.
+        /// </summary>
         [HttpGet]
+        [SwaggerOperation(Summary = "Get all orders", Description = "Returns a list of all orders in the system.")]
+        [SwaggerResponse(200, "Successfully retrieved list of orders.")]
         public async Task<ActionResult<IEnumerable<Order>>> GetOrders()
         {
             return await _context.Orders.ToListAsync();
         }
 
-        // GET: api/Orders/5
+        /// <summary>
+        /// Get a specific order by ID.
+        /// </summary>
         [HttpGet("{id}")]
+        [SwaggerOperation(Summary = "Get an order by ID", Description = "Returns a specific order by its ID.")]
+        [SwaggerResponse(200, "Successfully retrieved the order.")]
+        [SwaggerResponse(404, "Order not found.")]
         public async Task<ActionResult<Order>> GetOrder(int id)
         {
             var order = await _context.Orders.FindAsync(id);
@@ -42,9 +47,14 @@ namespace Laundry.Api.Controllers
             return order;
         }
 
-        // PUT: api/Orders/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        /// <summary>
+        /// Update an existing order by ID.
+        /// </summary>
         [HttpPut("{id}")]
+        [SwaggerOperation(Summary = "Update an order", Description = "Updates the order with the given ID.")]
+        [SwaggerResponse(204, "Order updated successfully.")]
+        [SwaggerResponse(400, "Invalid request (ID mismatch).")]
+        [SwaggerResponse(404, "Order not found.")]
         public async Task<IActionResult> PutOrder(int id, Order order)
         {
             if (id != order.Id)
@@ -73,9 +83,12 @@ namespace Laundry.Api.Controllers
             return NoContent();
         }
 
-        // POST: api/Orders
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        /// <summary>
+        /// Create a new order.
+        /// </summary>
         [HttpPost]
+        [SwaggerOperation(Summary = "Create a new order", Description = "Adds a new order to the system.")]
+        [SwaggerResponse(201, "Order created successfully.")]
         public async Task<ActionResult<Order>> PostOrder(Order order)
         {
             _context.Orders.Add(order);
@@ -84,8 +97,13 @@ namespace Laundry.Api.Controllers
             return CreatedAtAction("GetOrder", new { id = order.Id }, order);
         }
 
-        // DELETE: api/Orders/5
+        /// <summary>
+        /// Delete an existing order by ID.
+        /// </summary>
         [HttpDelete("{id}")]
+        [SwaggerOperation(Summary = "Delete an order", Description = "Removes the order with the given ID.")]
+        [SwaggerResponse(204, "Order deleted successfully.")]
+        [SwaggerResponse(404, "Order not found.")]
         public async Task<IActionResult> DeleteOrder(int id)
         {
             var order = await _context.Orders.FindAsync(id);
