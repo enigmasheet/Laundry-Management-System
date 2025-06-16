@@ -33,8 +33,8 @@ namespace Laundry.Api.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<int>("CustomerId")
-                        .HasColumnType("int");
+                    b.Property<Guid>("CustomerId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime?>("DeliveryDate")
                         .HasColumnType("datetime2");
@@ -42,13 +42,12 @@ namespace Laundry.Api.Migrations
                     b.Property<DateTime?>("PickupDate")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("Status")
-                        .IsRequired()
+                    b.Property<int>("Status")
                         .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.Property<int?>("UserId")
                         .HasColumnType("int");
+
+                    b.Property<Guid?>("UserId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<int>("VendorId")
                         .HasColumnType("int");
@@ -68,19 +67,19 @@ namespace Laundry.Api.Migrations
                         {
                             Id = 1,
                             CreatedAt = new DateTime(2025, 6, 9, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            CustomerId = 4,
+                            CustomerId = new Guid("44444444-4444-4444-4444-444444444444"),
                             DeliveryDate = new DateTime(2025, 6, 12, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             PickupDate = new DateTime(2025, 6, 10, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Status = "Completed",
+                            Status = 2,
                             VendorId = 1
                         },
                         new
                         {
                             Id = 2,
                             CreatedAt = new DateTime(2025, 6, 11, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            CustomerId = 5,
+                            CustomerId = new Guid("55555555-5555-5555-5555-555555555555"),
                             PickupDate = new DateTime(2025, 6, 12, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Status = "Pending",
+                            Status = 0,
                             VendorId = 2
                         });
                 });
@@ -155,8 +154,8 @@ namespace Laundry.Api.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<int>("CustomerId")
-                        .HasColumnType("int");
+                    b.Property<Guid>("CustomerId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<int>("Rating")
                         .HasColumnType("int");
@@ -164,8 +163,8 @@ namespace Laundry.Api.Migrations
                     b.Property<int?>("ServiceId")
                         .HasColumnType("int");
 
-                    b.Property<int?>("UserId")
-                        .HasColumnType("int");
+                    b.Property<Guid?>("UserId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<int?>("VendorId")
                         .HasColumnType("int");
@@ -188,7 +187,7 @@ namespace Laundry.Api.Migrations
                             Id = 1,
                             Comment = "Great service!",
                             CreatedAt = new DateTime(2025, 6, 10, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            CustomerId = 4,
+                            CustomerId = new Guid("44444444-4444-4444-4444-444444444444"),
                             Rating = 5,
                             VendorId = 1
                         },
@@ -197,7 +196,7 @@ namespace Laundry.Api.Migrations
                             Id = 2,
                             Comment = "Good but room for improvement.",
                             CreatedAt = new DateTime(2025, 6, 11, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            CustomerId = 5,
+                            CustomerId = new Guid("55555555-5555-5555-5555-555555555555"),
                             Rating = 4,
                             VendorId = 2
                         });
@@ -213,7 +212,8 @@ namespace Laundry.Api.Migrations
 
                     b.Property<string>("Description")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -257,6 +257,112 @@ namespace Laundry.Api.Migrations
                             Name = "Wash & Iron",
                             PricePerKg = 10.00m,
                             VendorId = 2
+                        });
+                });
+
+            modelBuilder.Entity("Laundry.Api.Models.User", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Address")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("FullName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<double?>("Latitude")
+                        .HasColumnType("float");
+
+                    b.Property<double?>("Longitude")
+                        .HasColumnType("float");
+
+                    b.Property<string>("PasswordHash")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Phone")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("RefreshToken")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("RefreshTokenExpiryTime")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Role")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("VendorId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Email")
+                        .IsUnique();
+
+                    b.HasIndex("VendorId");
+
+                    b.ToTable("Users");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("11111111-1111-1111-1111-111111111111"),
+                            Email = "superadmin@laundry.com",
+                            FullName = "Super Admin",
+                            IsActive = true,
+                            PasswordHash = "hashedpassword",
+                            Role = "SuperAdmin"
+                        },
+                        new
+                        {
+                            Id = new Guid("22222222-2222-2222-2222-222222222222"),
+                            Email = "admin@sparklelaundry.com",
+                            FullName = "Vendor Admin Sparkle",
+                            IsActive = true,
+                            PasswordHash = "hashedpassword",
+                            Role = "VendorAdmin",
+                            VendorId = 1
+                        },
+                        new
+                        {
+                            Id = new Guid("33333333-3333-3333-3333-333333333333"),
+                            Email = "employee1@sparklelaundry.com",
+                            FullName = "Vendor Employee 1",
+                            IsActive = true,
+                            PasswordHash = "hashedpassword",
+                            Role = "Employee",
+                            VendorId = 1
+                        },
+                        new
+                        {
+                            Id = new Guid("44444444-4444-4444-4444-444444444444"),
+                            Email = "john.doe@example.com",
+                            FullName = "John Doe",
+                            IsActive = true,
+                            PasswordHash = "hashedpassword",
+                            Role = "Customer"
+                        },
+                        new
+                        {
+                            Id = new Guid("55555555-5555-5555-5555-555555555555"),
+                            Email = "jane.smith@example.com",
+                            FullName = "Jane Smith",
+                            IsActive = true,
+                            PasswordHash = "hashedpassword",
+                            Role = "Customer"
                         });
                 });
 
@@ -347,15 +453,16 @@ namespace Laundry.Api.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("CustomerId")
-                        .HasColumnType("int");
+                    b.Property<Guid>("CustomerId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<bool>("IsResponded")
                         .HasColumnType("bit");
 
                     b.Property<string>("Message")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
 
                     b.Property<DateTime>("SentAt")
                         .HasColumnType("datetime2");
@@ -375,7 +482,7 @@ namespace Laundry.Api.Migrations
                         new
                         {
                             Id = 1,
-                            CustomerId = 4,
+                            CustomerId = new Guid("44444444-4444-4444-4444-444444444444"),
                             IsResponded = false,
                             Message = "Do you offer express service?",
                             SentAt = new DateTime(2025, 6, 8, 0, 0, 0, 0, DateTimeKind.Unspecified),
@@ -384,7 +491,7 @@ namespace Laundry.Api.Migrations
                         new
                         {
                             Id = 2,
-                            CustomerId = 5,
+                            CustomerId = new Guid("55555555-5555-5555-5555-555555555555"),
                             IsResponded = false,
                             Message = "Can I schedule a pickup on weekends?",
                             SentAt = new DateTime(2025, 6, 9, 0, 0, 0, 0, DateTimeKind.Unspecified),
@@ -392,123 +499,15 @@ namespace Laundry.Api.Migrations
                         });
                 });
 
-            modelBuilder.Entity("User", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Address")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Email")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<string>("FullName")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("bit");
-
-                    b.Property<double?>("Latitude")
-                        .HasColumnType("float");
-
-                    b.Property<double?>("Longitude")
-                        .HasColumnType("float");
-
-                    b.Property<string>("PasswordHash")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Phone")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("RefreshToken")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime?>("RefreshTokenExpiryTime")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Role")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int?>("VendorId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("Email")
-                        .IsUnique();
-
-                    b.HasIndex("VendorId");
-
-                    b.ToTable("Users");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            Email = "superadmin@laundry.com",
-                            FullName = "Super Admin",
-                            IsActive = true,
-                            PasswordHash = "hashedpassword",
-                            Role = "SuperAdmin"
-                        },
-                        new
-                        {
-                            Id = 2,
-                            Email = "admin@sparklelaundry.com",
-                            FullName = "Vendor Admin Sparkle",
-                            IsActive = true,
-                            PasswordHash = "hashedpassword",
-                            Role = "VendorAdmin",
-                            VendorId = 1
-                        },
-                        new
-                        {
-                            Id = 3,
-                            Email = "employee1@sparklelaundry.com",
-                            FullName = "Vendor Employee 1",
-                            IsActive = true,
-                            PasswordHash = "hashedpassword",
-                            Role = "Employee",
-                            VendorId = 1
-                        },
-                        new
-                        {
-                            Id = 4,
-                            Email = "john.doe@example.com",
-                            FullName = "John Doe",
-                            IsActive = true,
-                            PasswordHash = "hashedpassword",
-                            Role = "Customer"
-                        },
-                        new
-                        {
-                            Id = 5,
-                            Email = "jane.smith@example.com",
-                            FullName = "Jane Smith",
-                            IsActive = true,
-                            PasswordHash = "hashedpassword",
-                            Role = "Customer"
-                        });
-                });
-
             modelBuilder.Entity("Laundry.Api.Models.Order", b =>
                 {
-                    b.HasOne("User", "Customer")
+                    b.HasOne("Laundry.Api.Models.User", "Customer")
                         .WithMany()
                         .HasForeignKey("CustomerId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("User", null)
+                    b.HasOne("Laundry.Api.Models.User", null)
                         .WithMany("Orders")
                         .HasForeignKey("UserId");
 
@@ -544,7 +543,7 @@ namespace Laundry.Api.Migrations
 
             modelBuilder.Entity("Laundry.Api.Models.Review", b =>
                 {
-                    b.HasOne("User", "Customer")
+                    b.HasOne("Laundry.Api.Models.User", "Customer")
                         .WithMany()
                         .HasForeignKey("CustomerId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -554,7 +553,7 @@ namespace Laundry.Api.Migrations
                         .WithMany("Reviews")
                         .HasForeignKey("ServiceId");
 
-                    b.HasOne("User", null)
+                    b.HasOne("Laundry.Api.Models.User", null)
                         .WithMany("Reviews")
                         .HasForeignKey("UserId");
 
@@ -581,9 +580,19 @@ namespace Laundry.Api.Migrations
                     b.Navigation("Vendor");
                 });
 
+            modelBuilder.Entity("Laundry.Api.Models.User", b =>
+                {
+                    b.HasOne("Laundry.Api.Models.Vendor", "Vendor")
+                        .WithMany("Users")
+                        .HasForeignKey("VendorId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("Vendor");
+                });
+
             modelBuilder.Entity("Laundry.Api.Models.VendorInquiry", b =>
                 {
-                    b.HasOne("User", "Customer")
+                    b.HasOne("Laundry.Api.Models.User", "Customer")
                         .WithMany()
                         .HasForeignKey("CustomerId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -600,16 +609,6 @@ namespace Laundry.Api.Migrations
                     b.Navigation("Vendor");
                 });
 
-            modelBuilder.Entity("User", b =>
-                {
-                    b.HasOne("Laundry.Api.Models.Vendor", "Vendor")
-                        .WithMany("Users")
-                        .HasForeignKey("VendorId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.Navigation("Vendor");
-                });
-
             modelBuilder.Entity("Laundry.Api.Models.Order", b =>
                 {
                     b.Navigation("OrderItems");
@@ -617,6 +616,13 @@ namespace Laundry.Api.Migrations
 
             modelBuilder.Entity("Laundry.Api.Models.Service", b =>
                 {
+                    b.Navigation("Reviews");
+                });
+
+            modelBuilder.Entity("Laundry.Api.Models.User", b =>
+                {
+                    b.Navigation("Orders");
+
                     b.Navigation("Reviews");
                 });
 
@@ -631,13 +637,6 @@ namespace Laundry.Api.Migrations
                     b.Navigation("Services");
 
                     b.Navigation("Users");
-                });
-
-            modelBuilder.Entity("User", b =>
-                {
-                    b.Navigation("Orders");
-
-                    b.Navigation("Reviews");
                 });
 #pragma warning restore 612, 618
         }

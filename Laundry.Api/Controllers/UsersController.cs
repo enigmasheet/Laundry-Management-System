@@ -58,9 +58,9 @@ namespace Laundry.Api.Controllers
         [SwaggerResponse(204, "User updated successfully.")]
         [SwaggerResponse(400, "Invalid request. ID mismatch.")]
         [SwaggerResponse(404, "User not found.")]
-        public async Task<IActionResult> PutUser(int id, User user)
+        public async Task<IActionResult> PutUser(Guid id, User user)
         {
-            if (id != user.Id)
+            if (id != user.UserId)
             {
                 return BadRequest();
             }
@@ -121,9 +121,9 @@ namespace Laundry.Api.Controllers
             return NoContent();
         }
 
-        private bool UserExists(int id)
+        private bool UserExists(Guid id)
         {
-            return _context.Users.Any(e => e.Id == id);
+            return _context.Users.Any(e => e.UserId == id);
         }
     }
 }

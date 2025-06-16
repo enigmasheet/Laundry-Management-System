@@ -1,8 +1,12 @@
-﻿namespace Laundry.Api.Models
+﻿using System;
+using System.Collections.Generic;
+
+namespace Laundry.Api.Models
 {
     public class Vendor
     {
         public int Id { get; set; }
+
         public string Name { get; set; } = null!;
         public string Description { get; set; } = null!;
         public string Phone { get; set; } = null!;
@@ -13,17 +17,15 @@
         public double Longitude { get; set; }
 
         public bool IsActive { get; set; } = true;
+
         public double AverageRating { get; set; }
         public int TotalReviews { get; set; }
 
-
-        public ICollection<User> Users { get; set; } = new List<User>();         // Admin, Employees
+        // Navigation properties
+        public ICollection<User> Users { get; set; } = new List<User>();
         public ICollection<Service> Services { get; set; } = new List<Service>();
         public ICollection<Order> Orders { get; set; } = new List<Order>();
         public ICollection<VendorInquiry> Inquiries { get; set; } = new List<VendorInquiry>();
         public ICollection<Review> Reviews { get; set; } = new List<Review>();
-
     }
-
-
 }

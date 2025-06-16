@@ -14,13 +14,55 @@ namespace Laundry.Api.Data.Seed
                 new Vendor { Id = 2, Name = "Fresh Wash", Description = "Eco-friendly washing", Phone = "0987654321", Email = "info@freshwash.com", Address = "456 Elm St", Latitude = 34.0522, Longitude = -118.2437, IsActive = true, AverageRating = 4.7, TotalReviews = 3 }
             );
 
-            // Seed Users
+            // Seed Users (use Guids for Ids)
             modelBuilder.Entity<User>().HasData(
-                new User { Id = 1, FullName = "Super Admin", Email = "superadmin@laundry.com", PasswordHash = "hashedpassword", Role = "SuperAdmin" },
-                new User { Id = 2, FullName = "Vendor Admin Sparkle", Email = "admin@sparklelaundry.com", PasswordHash = "hashedpassword", Role = "VendorAdmin", VendorId = 1 },
-                new User { Id = 3, FullName = "Vendor Employee 1", Email = "employee1@sparklelaundry.com", PasswordHash = "hashedpassword", Role = "Employee", VendorId = 1 },
-                new User { Id = 4, FullName = "John Doe", Email = "john.doe@example.com", PasswordHash = "hashedpassword", Role = "Customer" },
-                new User { Id = 5, FullName = "Jane Smith", Email = "jane.smith@example.com", PasswordHash = "hashedpassword", Role = "Customer" }
+                new User
+                {
+                    UserId = new Guid("11111111-1111-1111-1111-111111111111"),
+                    FullName = "Super Admin",
+                    Email = "superadmin@laundry.com",
+                    PasswordHash = "hashedpassword", // Replace with real hashed password
+                    Role = "SuperAdmin",
+                    IsActive = true
+                },
+                new User
+                {
+                    UserId = new Guid("22222222-2222-2222-2222-222222222222"),
+                    FullName = "Vendor Admin Sparkle",
+                    Email = "admin@sparklelaundry.com",
+                    PasswordHash = "hashedpassword", // Replace with real hashed password
+                    Role = "VendorAdmin",
+                    VendorId = 1,
+                    IsActive = true
+                },
+                new User
+                {
+                    UserId = new Guid("33333333-3333-3333-3333-333333333333"),
+                    FullName = "Vendor Employee 1",
+                    Email = "employee1@sparklelaundry.com",
+                    PasswordHash = "hashedpassword", // Replace with real hashed password
+                    Role = "Employee",
+                    VendorId = 1,
+                    IsActive = true
+                },
+                new User
+                {
+                    UserId = new Guid("44444444-4444-4444-4444-444444444444"),
+                    FullName = "John Doe",
+                    Email = "john.doe@example.com",
+                    PasswordHash = "hashedpassword", // Replace with real hashed password
+                    Role = "Customer",
+                    IsActive = true
+                },
+                new User
+                {
+                    UserId = new Guid("55555555-5555-5555-5555-555555555555"),
+                    FullName = "Jane Smith",
+                    Email = "jane.smith@example.com",
+                    PasswordHash = "hashedpassword", // Replace with real hashed password
+                    Role = "Customer",
+                    IsActive = true
+                }
             );
 
             // Seed Services (fixed PricePerKg)
@@ -30,10 +72,10 @@ namespace Laundry.Api.Data.Seed
                 new Service { Id = 3, Name = "Wash & Iron", Description = "Wash and iron clothes", PricePerKg = 10.00m, VendorId = 2 }
             );
 
-            // Seed Orders (fixed DateTimes)
+            // Seed Orders (fixed DateTimes, update CustomerId to Guid)
             modelBuilder.Entity<Order>().HasData(
-                new Order { Id = 1, CustomerId = 4, VendorId = 1, CreatedAt = new DateTime(2025, 6, 9), PickupDate = new DateTime(2025, 6, 10), DeliveryDate = new DateTime(2025, 6, 12), Status = "Completed" },
-                new Order { Id = 2, CustomerId = 5, VendorId = 2, CreatedAt = new DateTime(2025, 6, 11), PickupDate = new DateTime(2025, 6, 12), Status = "Pending" }
+                new Order { Id = 1, CustomerId = new Guid("44444444-4444-4444-4444-444444444444"), VendorId = 1, CreatedAt = new DateTime(2025, 6, 9), PickupDate = new DateTime(2025, 6, 10), DeliveryDate = new DateTime(2025, 6, 12), Status = OrderStatus.Completed },
+                new Order { Id = 2, CustomerId = new Guid("55555555-5555-5555-5555-555555555555"), VendorId = 2, CreatedAt = new DateTime(2025, 6, 11), PickupDate = new DateTime(2025, 6, 12), Status = OrderStatus.Pending }
             );
 
             // Seed OrderItems (fixed QuantityKg)
@@ -43,16 +85,16 @@ namespace Laundry.Api.Data.Seed
                 new OrderItem { Id = 3, OrderId = 2, ServiceId = 3, QuantityKg = 2, UnitPrice = 10.00m }
             );
 
-            // Seed Reviews (fixed DateTimes)
+            // Seed Reviews (fixed DateTimes, update CustomerId to Guid)
             modelBuilder.Entity<Review>().HasData(
-                new Review { Id = 1, CustomerId = 4, VendorId = 1, Rating = 5, Comment = "Great service!", CreatedAt = new DateTime(2025, 6, 10) },
-                new Review { Id = 2, CustomerId = 5, VendorId = 2, Rating = 4, Comment = "Good but room for improvement.", CreatedAt = new DateTime(2025, 6, 11) }
+                new Review { Id = 1, CustomerId = new Guid("44444444-4444-4444-4444-444444444444"), VendorId = 1, Rating = 5, Comment = "Great service!", CreatedAt = new DateTime(2025, 6, 10) },
+                new Review { Id = 2, CustomerId = new Guid("55555555-5555-5555-5555-555555555555"), VendorId = 2, Rating = 4, Comment = "Good but room for improvement.", CreatedAt = new DateTime(2025, 6, 11) }
             );
 
-            // Seed VendorInquiries (fixed SentAt property and DateTimes)
+            // Seed VendorInquiries (fixed SentAt property and DateTimes, update CustomerId to Guid)
             modelBuilder.Entity<VendorInquiry>().HasData(
-                new VendorInquiry { Id = 1, CustomerId = 4, VendorId = 1, Message = "Do you offer express service?", SentAt = new DateTime(2025, 6, 8), IsResponded = false },
-                new VendorInquiry { Id = 2, CustomerId = 5, VendorId = 2, Message = "Can I schedule a pickup on weekends?", SentAt = new DateTime(2025, 6, 9), IsResponded = false }
+                new VendorInquiry { Id = 1, CustomerId = new Guid("44444444-4444-4444-4444-444444444444"), VendorId = 1, Message = "Do you offer express service?", SentAt = new DateTime(2025, 6, 8), IsResponded = false },
+                new VendorInquiry { Id = 2, CustomerId = new Guid("55555555-5555-5555-5555-555555555555"), VendorId = 2, Message = "Can I schedule a pickup on weekends?", SentAt = new DateTime(2025, 6, 9), IsResponded = false }
             );
         }
     }
