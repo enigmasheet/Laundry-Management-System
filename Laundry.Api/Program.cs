@@ -1,6 +1,10 @@
+using Laundry.Api.Data;
+using Laundry.Api.Middleware;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using Serilog;
-using Laundry.Api.Data; // Replace with your actual DbContext namespace
+using System.Text;
 
 namespace Laundry.Api
 {
@@ -18,13 +22,14 @@ namespace Laundry.Api
             // Use Serilog as the logging provider
             builder.Host.UseSerilog();
 
-            // Add EF Core DbContext (replace "DefaultConnection" with your connection string key)
+            // Add EF Core DbContext
             builder.Services.AddDbContext<LaundryDbContext>(options =>
                 options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
             // Add controllers and swagger services
             builder.Services.AddControllers();
             builder.Services.AddEndpointsApiExplorer();
+
             builder.Services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
@@ -34,18 +39,20 @@ namespace Laundry.Api
                     Description = "An API for managing laundry orders, items, and more"
                 });
 
-                // Include XML comments (ensure XML doc generation is on)
                 var xmlFile = $"{System.Reflection.Assembly.GetExecutingAssembly().GetName().Name}.xml";
                 var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
                 c.IncludeXmlComments(xmlPath);
 
-                // Enable Swagger Annotations (if you want to use [SwaggerOperation])
-                c.EnableAnnotations(); 
+                c.EnableAnnotations();
             });
+
+
+
+
+            builder.Services.AddAuthorization();
 
             var app = builder.Build();
 
-            // Enable Swagger UI in Development environment
             if (app.Environment.IsDevelopment())
             {
                 app.UseSwagger();
@@ -53,9 +60,9 @@ namespace Laundry.Api
             }
 
             app.UseHttpsRedirection();
+            app.UseMiddleware<JwtMiddleware>();
 
-            // No authentication middleware since JWT not implemented yet
-            // app.UseAuthentication();  // Not added
+
             app.UseAuthorization();
 
             app.MapControllers();

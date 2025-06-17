@@ -1,12 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
+﻿
+using System.ComponentModel.DataAnnotations;
 
 namespace Laundry.Api.Models
 {
     public class User
     {
-        public int Id { get; set; }  
         // Primary key as GUID
+        [Key]
         public Guid UserId { get; set; } = Guid.NewGuid();
 
         // Basic user info
