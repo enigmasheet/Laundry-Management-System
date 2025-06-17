@@ -123,7 +123,6 @@ namespace Laundry.Api
 
             app.UseHttpsRedirection();
 
-            // Authentication must come before Authorization
             app.UseAuthentication();
             app.UseAuthorization();
 
