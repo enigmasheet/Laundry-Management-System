@@ -1,4 +1,5 @@
 ﻿using Laundry.Api.Data;
+using Laundry.Api.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -11,65 +12,53 @@ namespace Laundry.Api.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class AuthenticationController : ControllerBase
+    public class AuthController : ControllerBase
     {
         private readonly LaundryDbContext _context;
         private readonly IConfiguration _configuration;
 
-        public AuthenticationController(LaundryDbContext context, IConfiguration configuration)
+        public AuthController(LaundryDbContext context, IConfiguration configuration)
         {
             _context = context;
             _configuration = configuration;
         }
 
         [HttpPost("login")]
-        public async Task<IActionResult> Login([FromBody] LoginDto loginDto)
+        public async Task<IActionResult> LoginAsync([FromBody] LoginDto loginDto)
         {
             if (loginDto == null || string.IsNullOrWhiteSpace(loginDto.Email) || string.IsNullOrWhiteSpace(loginDto.Password))
-                return BadRequest("Email and password required.");
+                return BadRequest("Email and password are required.");
 
-            // Find user by email
-            var user = await _context.Users.SingleOrDefaultAsync(u => u.Email == loginDto.Email);
-            if (user == null)
+            var user = await _context.Users
+                .SingleOrDefaultAsync(u => u.Email.ToLower() == loginDto.Email.ToLower());
+
+            if (user == null || user.PasswordHash != loginDto.Password)
                 return Unauthorized("Invalid credentials.");
 
-            // TODO: Replace this with your password hash verification
-            if (user.PasswordHash != loginDto.Password)
-                return Unauthorized("Invalid credentials.");
-
-            // Create claims
-            // Create claims
             var claims = new List<Claim>
             {
-                new Claim(ClaimTypes.NameIdentifier, user.UserId.ToString()),    // Unique user ID
-                new Claim(ClaimTypes.Name, user.FullName),                       // Full name for display
-                new Claim(ClaimTypes.Email, user.Email),                         // Email for identification
-                new Claim(ClaimTypes.Role, user.Role),                           // Role (Customer, VendorAdmin, etc.)
-                new Claim("isActive", user.IsActive.ToString())                  // Account status as claim (optional)
+                new Claim(ClaimTypes.NameIdentifier, user.UserId.ToString()),
+                new Claim(ClaimTypes.Name, user.FullName ?? string.Empty),
+                new Claim(ClaimTypes.Email, user.Email ?? string.Empty),
+                new Claim(ClaimTypes.Role, user.Role ?? string.Empty),
+                new Claim("isActive", user.IsActive.ToString())
             };
 
-            // Add optional claims conditionally
             if (!string.IsNullOrEmpty(user.Phone))
                 claims.Add(new Claim("phone", user.Phone));
-
             if (!string.IsNullOrEmpty(user.Address))
                 claims.Add(new Claim("address", user.Address));
-
             if (user.VendorId.HasValue)
                 claims.Add(new Claim("vendorId", user.VendorId.Value.ToString()));
-
             if (user.Latitude.HasValue)
                 claims.Add(new Claim("latitude", user.Latitude.Value.ToString()));
-
             if (user.Longitude.HasValue)
                 claims.Add(new Claim("longitude", user.Longitude.Value.ToString()));
 
-            // Remove any nulls caused by optional claims
-            claims = claims.Where(c => c != null).ToList();
-
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-            var expires = DateTime.UtcNow.AddMinutes(double.Parse(_configuration["Jwt:ExpiresInMinutes"] ?? "60"));
+            var expiresInMinutes = double.TryParse(_configuration["Jwt:ExpiresInMinutes"], out var parsedMinutes) ? parsedMinutes : 60;
+            var expires = DateTime.UtcNow.AddMinutes(expiresInMinutes);
 
             var token = new JwtSecurityToken(
                 issuer: _configuration["Jwt:Issuer"],
@@ -81,16 +70,26 @@ namespace Laundry.Api.Controllers
 
             var tokenString = new JwtSecurityTokenHandler().WriteToken(token);
 
-            // Set JWT as HttpOnly cookie
             Response.Cookies.Append("AuthToken", tokenString, new Microsoft.AspNetCore.Http.CookieOptions
             {
                 HttpOnly = true,
-                Secure = false, // Set true in production (HTTPS), false for local dev
+                Secure = HttpContext.Request.IsHttps,
                 SameSite = Microsoft.AspNetCore.Http.SameSiteMode.Strict,
                 Expires = expires
             });
 
-            return Ok(new { message = "Login successful" });
+            return Ok(new
+            {
+                token = tokenString,
+                expiresIn = expiresInMinutes * 60,
+                user = new
+                {
+                    user.UserId,
+                    user.FullName,
+                    user.Email,
+                    user.Role
+                }
+            });
         }
 
         [Authorize]
@@ -112,18 +111,29 @@ namespace Laundry.Api.Controllers
             var isActive = User.FindFirstValue("isActive") == "True";
             var phone = User.FindFirstValue("phone") ?? "Not provided";
             var address = User.FindFirstValue("address") ?? "Not provided";
-            var vendorId = User.FindFirstValue("vendorId"); 
+            var vendorId = User.FindFirstValue("vendorId");
             var latitude = User.FindFirstValue("latitude");
             var longitude = User.FindFirstValue("longitude");
 
-
-            return Ok(new { userId, email,fullName, role, isActive, phone, address, vendorId , latitude, longitude });
+            return Ok(new
+            {
+                userId,
+                email,
+                fullName,
+                role,
+                isActive,
+                phone,
+                address,
+                vendorId,
+                latitude,
+                longitude
+            });
         }
     }
 
     public class LoginDto
     {
-        public string Email { get; set; } = "";
-        public string Password { get; set; } = "";
+        public string Email { get; set; } = string.Empty;
+        public string Password { get; set; } = string.Empty;
     }
 }
