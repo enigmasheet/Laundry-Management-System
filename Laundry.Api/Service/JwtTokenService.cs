@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using Laundry.Api.Data;
+using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using System;
 using System.IdentityModel.Tokens.Jwt;
@@ -9,11 +10,13 @@ namespace Laundry.Api.Services
 {
     public class JwtTokenService
     {
+        private readonly LaundryDbContext _context;
         private readonly IConfiguration _configuration;
 
-        public JwtTokenService(IConfiguration configuration)
+        public JwtTokenService(LaundryDbContext context, IConfiguration configuration)
         {
             _configuration = configuration;
+            _context = context;
         }
 
         public string GenerateToken(string userId, string userName)
