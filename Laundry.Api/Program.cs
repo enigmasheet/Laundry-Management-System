@@ -104,20 +104,28 @@ namespace Laundry.Api
                             context.Token = context.Request.Cookies["AuthToken"];
                         }
                         return Task.CompletedTask;
+                    },
+                    OnAuthenticationFailed = context =>
+                    {
+                        Log.Error("Authentication failed: {0}", context.Exception.Message);
+                        return Task.CompletedTask;
                     }
                 };
+
             });
             // Add CORS policy
             builder.Services.AddCors(options =>
             {
                 options.AddPolicy("AllowFrontend", policy =>
                 {
-                    policy.WithOrigins("https://localhost:44308") // frontend origin
+                    var origins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>();
+                    policy.WithOrigins(origins)
                           .AllowAnyHeader()
                           .AllowAnyMethod()
-                          .AllowCredentials(); // critical for sending cookies
+                          .AllowCredentials();
                 });
             });
+
 
             // Add Authorization
             builder.Services.AddAuthorization();
@@ -131,7 +139,11 @@ namespace Laundry.Api
                 app.UseSwaggerUI(c =>
                 {
                     c.SwaggerEndpoint("/swagger/v1/swagger.json", "Laundry API v1");
+                    c.RoutePrefix = "swagger"; // Keep it under /swagger to avoid root override
+
                 });
+                app.UseDeveloperExceptionPage(); // Shows detailed error pages
+
             }
             app.UseCors("AllowFrontend");
 

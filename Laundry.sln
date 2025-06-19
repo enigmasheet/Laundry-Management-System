@@ -11,6 +11,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Laundry.Client", "Laundry.C
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Laundry.Client", "Laundry.Client\Laundry.Client.csproj", "{AC05B235-15FA-4CB1-9C7E-1009B844D682}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Laundry.Shared", "Laundry.Shared\Laundry.Shared.csproj", "{06065D69-0338-4DAF-B462-616CBABA7835}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Laundry.Shared", "Laundry.Shared", "{23A486ED-0445-41D0-A97E-672E7F516782}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -25,6 +29,10 @@ Global
 		{AC05B235-15FA-4CB1-9C7E-1009B844D682}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{AC05B235-15FA-4CB1-9C7E-1009B844D682}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{AC05B235-15FA-4CB1-9C7E-1009B844D682}.Release|Any CPU.Build.0 = Release|Any CPU
+		{06065D69-0338-4DAF-B462-616CBABA7835}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{06065D69-0338-4DAF-B462-616CBABA7835}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{06065D69-0338-4DAF-B462-616CBABA7835}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{06065D69-0338-4DAF-B462-616CBABA7835}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -32,6 +40,7 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{D68818B1-4A7F-4A9D-836E-B7B86DA18895} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 		{AC05B235-15FA-4CB1-9C7E-1009B844D682} = {6631DF4E-BDA6-45A7-8041-7B62CC830D19}
+		{06065D69-0338-4DAF-B462-616CBABA7835} = {23A486ED-0445-41D0-A97E-672E7F516782}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {C24BF3F3-BF77-40E4-A55B-9E96892968D4}

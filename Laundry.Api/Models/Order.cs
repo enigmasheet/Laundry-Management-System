@@ -1,14 +1,6 @@
-﻿namespace Laundry.Api.Models
-{
-    // Enum to represent the status of an Order, improving type safety and readability
-    public enum OrderStatus
-    {
-        Pending = 0,
-        InProgress = 1,
-        Completed = 2,
-        Cancelled = 3
-    }
-
+﻿using Laundry.Shared.Enum;
+namespace Laundry.Api.Models
+{   
     public class Order
     {
         // Primary key

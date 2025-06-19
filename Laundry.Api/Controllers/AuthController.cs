@@ -1,5 +1,4 @@
 ﻿using Laundry.Api.Data;
-using Laundry.Api.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -7,6 +6,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using Laundry.Shared.DTO;
 
 namespace Laundry.Api.Controllers
 {
@@ -133,9 +133,5 @@ namespace Laundry.Api.Controllers
         }
     }
 
-    public class LoginDto
-    {
-        public string Email { get; set; } = string.Empty;
-        public string Password { get; set; } = string.Empty;
-    }
+ 
 }

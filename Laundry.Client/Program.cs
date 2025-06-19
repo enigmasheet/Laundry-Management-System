@@ -8,11 +8,26 @@ namespace Laundry.Client
         public static async Task Main(string[] args)
         {
             var builder = WebAssemblyHostBuilder.CreateDefault(args);
+
             builder.RootComponents.Add<App>("#app");
             builder.RootComponents.Add<HeadOutlet>("head::after");
 
+
+
             builder.Services.AddScoped(sp =>
-                new HttpClient { BaseAddress = new Uri("https://localhost:44347/") });
+            {
+                var config = sp.GetRequiredService<IConfiguration>();
+                
+            
+                return new HttpClient
+                {
+                    BaseAddress = new Uri(config["ApiBaseUrl"]!)
+                };
+            });
+
+
+
+
 
             await builder.Build().RunAsync();
         }
