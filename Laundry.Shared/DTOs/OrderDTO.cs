@@ -1,11 +1,8 @@
-﻿using Laundry.Shared.Enum;
-using System;
-using System.Collections.Generic;
+﻿using Laundry.Shared.Enums;
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
 using System.Text.Json.Serialization;
 
-namespace Laundry.Shared.DTO
+namespace Laundry.Shared.DTOs
 {
     public class OrderDto : IValidatableObject
     {

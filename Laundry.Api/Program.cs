@@ -1,12 +1,12 @@
-using Laundry.Api.Data;
+﻿using Laundry.Api.Data;
 using Laundry.Api.Data.AutoMapper;
-using Laundry.Api.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Serilog;
 using System.Text;
 using AutoMapper;
+using Laundry.Api.Service;
 
 // Replace the ambiguous line with the following:
 namespace Laundry.Api
@@ -29,7 +29,10 @@ namespace Laundry.Api
             builder.Services.AddDbContext<LaundryDbContext>(options =>
                 options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
             builder.Services.AddScoped<JwtTokenService>();
+            
+            
             builder.Services.AddAutoMapper(typeof(LaundryMappingProfile));
+            
 
             // Add controllers and Swagger/OpenAPI services
             builder.Services.AddControllers();
@@ -135,6 +138,24 @@ namespace Laundry.Api
             builder.Services.AddAuthorization();
 
             var app = builder.Build();
+
+            // ✅ Safe to use service scope here
+            using (var scope = app.Services.CreateScope())
+            {
+                try
+                {
+                    var mapper = scope.ServiceProvider.GetRequiredService<IMapper>();
+                    mapper.ConfigurationProvider.AssertConfigurationIsValid();
+                    Log.Information("AutoMapper configuration is valid.");
+                }
+                catch (AutoMapperConfigurationException ex)
+                {
+                    Log.Fatal("AutoMapper configuration error: {Error}", ex.Message);
+                    throw;
+                }
+            }
+
+
 
             // Enable Swagger UI only in Development environment
             if (app.Environment.IsDevelopment())

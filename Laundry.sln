@@ -15,6 +15,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Laundry.Shared", "Laundry.S
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Laundry.Shared", "Laundry.Shared", "{23A486ED-0445-41D0-A97E-672E7F516782}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Laundry.Tests", "Laundry.Tests", "{E9062B23-AE6B-470D-B65D-D2DB08EFAB2D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Laundry.Tests", "Laundry.Test\Laundry.Tests.csproj", "{091831A9-855B-41BB-A42C-FD8D3CDDFC4D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,6 +37,10 @@ Global
 		{06065D69-0338-4DAF-B462-616CBABA7835}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{06065D69-0338-4DAF-B462-616CBABA7835}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{06065D69-0338-4DAF-B462-616CBABA7835}.Release|Any CPU.Build.0 = Release|Any CPU
+		{091831A9-855B-41BB-A42C-FD8D3CDDFC4D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{091831A9-855B-41BB-A42C-FD8D3CDDFC4D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{091831A9-855B-41BB-A42C-FD8D3CDDFC4D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{091831A9-855B-41BB-A42C-FD8D3CDDFC4D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -41,6 +49,7 @@ Global
 		{D68818B1-4A7F-4A9D-836E-B7B86DA18895} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 		{AC05B235-15FA-4CB1-9C7E-1009B844D682} = {6631DF4E-BDA6-45A7-8041-7B62CC830D19}
 		{06065D69-0338-4DAF-B462-616CBABA7835} = {23A486ED-0445-41D0-A97E-672E7F516782}
+		{091831A9-855B-41BB-A42C-FD8D3CDDFC4D} = {E9062B23-AE6B-470D-B65D-D2DB08EFAB2D}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {C24BF3F3-BF77-40E4-A55B-9E96892968D4}

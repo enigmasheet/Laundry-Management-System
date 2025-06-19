@@ -1,9 +1,9 @@
-﻿using Laundry.Shared.Enum;
+﻿using Laundry.Shared.Enums;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
-namespace Laundry.Shared.DTO
+namespace Laundry.Shared.DTOs
 {
     public class UserDto
     {

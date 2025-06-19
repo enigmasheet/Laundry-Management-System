@@ -1,4 +1,4 @@
-﻿using Laundry.Shared.Enum;
+﻿using Laundry.Shared.Enums;
 namespace Laundry.Api.Models
 {   
     public class Order

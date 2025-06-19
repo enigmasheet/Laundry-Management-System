@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace Laundry.Shared.Enum
+namespace Laundry.Shared.Enums
 {
     public enum UserRole
     {

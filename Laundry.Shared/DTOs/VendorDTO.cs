@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
-namespace Laundry.Shared.DTO
+namespace Laundry.Shared.DTOs
 {
     public class VendorDto
     {

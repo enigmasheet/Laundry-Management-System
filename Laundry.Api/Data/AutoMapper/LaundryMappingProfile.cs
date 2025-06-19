@@ -1,6 +1,6 @@
 ﻿using AutoMapper;
 using Laundry.Api.Models;
-using Laundry.Shared.DTO;
+using Laundry.Shared.DTOs;
 namespace Laundry.Api.Data.AutoMapper
 {
     public class LaundryMappingProfile : Profile
