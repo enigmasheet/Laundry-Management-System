@@ -112,7 +112,7 @@ namespace Laundry.Api
             {
                 options.AddPolicy("AllowFrontend", policy =>
                 {
-                    policy.WithOrigins("https://localhost:3000") // frontend origin
+                    policy.WithOrigins("https://localhost:44308") // frontend origin
                           .AllowAnyHeader()
                           .AllowAnyMethod()
                           .AllowCredentials(); // critical for sending cookies
@@ -131,7 +131,6 @@ namespace Laundry.Api
                 app.UseSwaggerUI(c =>
                 {
                     c.SwaggerEndpoint("/swagger/v1/swagger.json", "Laundry API v1");
-                    c.RoutePrefix = string.Empty; // Swagger at app root
                 });
             }
             app.UseCors("AllowFrontend");
