@@ -1,35 +1,32 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace Laundry.Shared.DTO
 {
     public class ReviewDto
     {
+        [Required]
         public int Id { get; set; }
 
+        [Required]
         public Guid CustomerId { get; set; }
 
-        // Optionally include customer info
         public UserDto? Customer { get; set; }
 
         public int? VendorId { get; set; }
 
-        // Optionally include vendor info
         public VendorDto? Vendor { get; set; }
 
         public int? ServiceId { get; set; }
 
-        // Optionally include service info
         public ServiceDto? Service { get; set; }
 
-        public int Rating { get; set; } // 1 to 5
+        [Range(1, 5, ErrorMessage = "Rating must be between 1 and 5.")]
+        public int Rating { get; set; }
 
+        [MaxLength(1000)]
         public string? Comment { get; set; }
 
+        [Required]
         public DateTime CreatedAt { get; set; }
     }
-
 }

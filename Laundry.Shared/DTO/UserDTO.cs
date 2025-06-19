@@ -1,19 +1,30 @@
 ﻿using Laundry.Shared.Enum;
+using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+
 namespace Laundry.Shared.DTO
 {
     public class UserDto
     {
+        [Required]
         public Guid UserId { get; set; }
 
+        [Required]
+        [StringLength(150)]
         public string FullName { get; set; } = null!;
 
+        [Required]
+        [EmailAddress]
         public string Email { get; set; } = null!;
 
-        // Use UserRole enum for strong typing instead of string Role
+        [Required]
         public UserRole Role { get; set; }
 
+        [Phone]
         public string? Phone { get; set; }
 
+        [StringLength(250)]
         public string? Address { get; set; }
 
         public double? Latitude { get; set; }
@@ -22,10 +33,8 @@ namespace Laundry.Shared.DTO
 
         public int? VendorId { get; set; }
 
-        // Optional minimal vendor info to avoid deep nesting
         public VendorDto? Vendor { get; set; }
 
-        // Optionally include orders and reviews summaries if needed
         public List<OrderDto>? Orders { get; set; }
 
         public List<ReviewDto>? Reviews { get; set; }
