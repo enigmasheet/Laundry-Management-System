@@ -1,14 +1,16 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Laundry.Api.Data;
+using Laundry.Api.Models;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Swashbuckle.AspNetCore.Annotations;
-using Laundry.Api.Data;
-using Laundry.Api.Models;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
 namespace Laundry.Api.Controllers
 {
+    [Authorize]
     [Route("api/[controller]")]
     [ApiController]
     public class VendorsController : ControllerBase
@@ -103,6 +105,7 @@ namespace Laundry.Api.Controllers
         /// <summary>
         /// Delete a vendor by ID.
         /// </summary>
+        [Authorize(Roles = "SuperAdmin")]
         [HttpDelete("{id}")]
         [SwaggerOperation(Summary = "Delete a vendor", Description = "Deletes the vendor with the specified ID.")]
         [SwaggerResponse(204, "Vendor deleted successfully.")]

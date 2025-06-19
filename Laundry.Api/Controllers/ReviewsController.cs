@@ -1,5 +1,6 @@
 ﻿using Laundry.Api.Data;
 using Laundry.Api.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -7,10 +8,12 @@ using Swashbuckle.AspNetCore.Annotations;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 
 namespace Laundry.Api.Controllers
 {
+    [Authorize]
     [Route("api/[controller]")]
     [ApiController]
     public class ReviewsController : ControllerBase
@@ -21,17 +24,24 @@ namespace Laundry.Api.Controllers
         {
             _context = context;
         }
-       
+
         /// <summary>
         /// Get all reviews.
         /// </summary>
         [HttpGet]
-        [SwaggerOperation(Summary = "Get all reviews", Description = "Retrieves a list of all customer reviews.")]
+        [SwaggerOperation(Summary = "Get all reviews", Description = "Retrieves a list of all customer reviews with related data.")]
         [SwaggerResponse(200, "List of reviews retrieved successfully.")]
         public async Task<ActionResult<IEnumerable<Review>>> GetReviews()
         {
-            return await _context.Reviews.ToListAsync();
+            var reviews = await _context.Reviews
+                .Include(r => r.Customer)
+                .Include(r => r.Vendor)
+                .Include(r => r.Service)
+                .ToListAsync();
+
+            return Ok(reviews);
         }
+
 
         /// <summary>
         /// Get a review by ID.
@@ -87,7 +97,7 @@ namespace Laundry.Api.Controllers
 
             return NoContent();
         }
-        
+
         /// <summary>
         /// Create a new review.
         /// </summary>
@@ -96,11 +106,24 @@ namespace Laundry.Api.Controllers
         [SwaggerResponse(201, "Review created successfully.")]
         public async Task<ActionResult<Review>> PostReview(Review review)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (userIdStr == null)
+                return Unauthorized();
+
+            review.CustomerId = Guid.Parse(userIdStr);
+            review.CreatedAt = DateTime.UtcNow;
+
             _context.Reviews.Add(review);
             await _context.SaveChangesAsync();
 
             return CreatedAtAction("GetReview", new { id = review.Id }, review);
         }
+
 
         /// <summary>
         /// Delete a review by ID.

@@ -1,7 +1,8 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Laundry.Api.Data;
+﻿using Laundry.Api.Data;
 using Laundry.Api.Models;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Swashbuckle.AspNetCore.Annotations;
 
 namespace Laundry.Api.Controllers
@@ -21,6 +22,7 @@ namespace Laundry.Api.Controllers
         /// Get all order items.
         /// </summary>
         /// <returns>A list of all order items.</returns>
+        [Authorize]
         [HttpGet]
         [SwaggerOperation(Summary = "Get all order items", Description = "Retrieves a list of all order items from the database.")]
         [SwaggerResponse(200, "Returns the list of order items")]
@@ -34,6 +36,7 @@ namespace Laundry.Api.Controllers
         /// </summary>
         /// <param name="id">The ID of the order item.</param>
         /// <returns>The requested order item.</returns>
+        [Authorize]
         [HttpGet("{id}")]
         [SwaggerOperation(Summary = "Get order item by ID", Description = "Retrieves a specific order item by its ID.")]
         [SwaggerResponse(200, "Returns the requested order item")]
@@ -55,6 +58,7 @@ namespace Laundry.Api.Controllers
         /// </summary>
         /// <param name="id">The ID of the order item.</param>
         /// <param name="orderItem">The updated order item object.</param>
+        [Authorize]
         [HttpPut("{id}")]
         [SwaggerOperation(Summary = "Update an order item", Description = "Updates an existing order item by ID.")]
         [SwaggerResponse(204, "Order item updated successfully")]
@@ -93,6 +97,7 @@ namespace Laundry.Api.Controllers
         /// </summary>
         /// <param name="orderItem">The order item to create.</param>
         /// <returns>The newly created order item.</returns>
+        [Authorize]
         [HttpPost]
         [SwaggerOperation(Summary = "Create a new order item", Description = "Creates a new order item and returns it.")]
         [SwaggerResponse(201, "Order item created successfully")]
@@ -108,6 +113,7 @@ namespace Laundry.Api.Controllers
         /// Delete an order item by ID.
         /// </summary>
         /// <param name="id">The ID of the order item to delete.</param>
+        [Authorize]
         [HttpDelete("{id}")]
         [SwaggerOperation(Summary = "Delete an order item", Description = "Deletes an existing order item by ID.")]
         [SwaggerResponse(204, "Order item deleted successfully")]
