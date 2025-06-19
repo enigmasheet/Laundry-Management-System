@@ -6,7 +6,7 @@ using Microsoft.IdentityModel.Tokens;
 using Serilog;
 using System.Text;
 using AutoMapper;
-using Laundry.Api.Service;
+using Laundry.Api.Services;
 
 // Replace the ambiguous line with the following:
 namespace Laundry.Api

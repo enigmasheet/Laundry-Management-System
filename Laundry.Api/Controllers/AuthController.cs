@@ -6,7 +6,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-using Laundry.Shared.DTO;
+using Laundry.Shared.DTOs;
 
 namespace Laundry.Api.Controllers
 {

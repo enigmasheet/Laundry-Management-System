@@ -19,6 +19,8 @@ namespace Laundry.Shared.DTOs
         [Range(1, int.MaxValue, ErrorMessage = "Vendor Id must be positive.")]
         public int VendorId { get; set; }
 
+        public VendorDto? Vendor { get; set; }
+
         [Required]
         [Display(Name = "Created At")]
         public DateTime CreatedAt { get; set; }

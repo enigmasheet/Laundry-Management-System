@@ -1,6 +1,6 @@
 ﻿using Laundry.Api.Models;
 using Microsoft.EntityFrameworkCore;
-using Laundry.Shared.Enum;
+using Laundry.Shared.Enums;
 using System;
 
 namespace Laundry.Api.Data.Seed

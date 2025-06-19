@@ -21,6 +21,11 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <ProjectReference Include="..\Laundry.Api\Laundry.Api.csproj" />
+	  <ProjectReference Include="..\Laundry.Shared\Laundry.Shared.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
 		<Using Include="Xunit" />
 	</ItemGroup>
 
