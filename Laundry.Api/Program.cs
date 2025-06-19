@@ -1,11 +1,14 @@
 using Laundry.Api.Data;
+using Laundry.Api.Data.AutoMapper;
 using Laundry.Api.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Serilog;
 using System.Text;
+using AutoMapper;
 
+// Replace the ambiguous line with the following:
 namespace Laundry.Api
 {
     public class Program
@@ -26,6 +29,7 @@ namespace Laundry.Api
             builder.Services.AddDbContext<LaundryDbContext>(options =>
                 options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
             builder.Services.AddScoped<JwtTokenService>();
+            builder.Services.AddAutoMapper(typeof(LaundryMappingProfile));
 
             // Add controllers and Swagger/OpenAPI services
             builder.Services.AddControllers();
