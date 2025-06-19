@@ -8,6 +8,9 @@ namespace Laundry.Api.Data.Seed
     {
         public static void Seed(this ModelBuilder modelBuilder)
         {
+            string hashedPassword = "$2a$11$wbiDSq0ImltzPEcBzbP/h.9Wl5Za3cwtxJbnTmh/h75rewphVaxhu"; // Example hashed password, replace with a real hash == Password@123   
+
+
             // Seed Vendors
             modelBuilder.Entity<Vendor>().HasData(
                 new Vendor { Id = 1, Name = "Sparkle Laundry", Description = "Fast & reliable laundry service", Phone = "1234567890", Email = "contact@sparklelaundry.com", Address = "123 Main St", Latitude = 40.7128, Longitude = -74.0060, IsActive = true, AverageRating = 4.5, TotalReviews = 2 },
@@ -21,7 +24,7 @@ namespace Laundry.Api.Data.Seed
                     UserId = new Guid("11111111-1111-1111-1111-111111111111"),
                     FullName = "Super Admin",
                     Email = "superadmin@laundry.com",
-                    PasswordHash = "hashedpassword", // Replace with real hashed password
+                    PasswordHash = hashedPassword,
                     Role = "SuperAdmin",
                     IsActive = true
                 },
@@ -30,7 +33,7 @@ namespace Laundry.Api.Data.Seed
                     UserId = new Guid("22222222-2222-2222-2222-222222222222"),
                     FullName = "Vendor Admin Sparkle",
                     Email = "admin@sparklelaundry.com",
-                    PasswordHash = "hashedpassword", // Replace with real hashed password
+                    PasswordHash = hashedPassword,
                     Role = "VendorAdmin",
                     VendorId = 1,
                     IsActive = true
@@ -40,7 +43,7 @@ namespace Laundry.Api.Data.Seed
                     UserId = new Guid("33333333-3333-3333-3333-333333333333"),
                     FullName = "Vendor Employee 1",
                     Email = "employee1@sparklelaundry.com",
-                    PasswordHash = "hashedpassword", // Replace with real hashed password
+                    PasswordHash = hashedPassword,
                     Role = "Employee",
                     VendorId = 1,
                     IsActive = true
@@ -50,7 +53,7 @@ namespace Laundry.Api.Data.Seed
                     UserId = new Guid("44444444-4444-4444-4444-444444444444"),
                     FullName = "John Doe",
                     Email = "john.doe@example.com",
-                    PasswordHash = "hashedpassword", // Replace with real hashed password
+                    PasswordHash = hashedPassword,
                     Role = "Customer",
                     IsActive = true
                 },
@@ -59,11 +62,11 @@ namespace Laundry.Api.Data.Seed
                     UserId = new Guid("55555555-5555-5555-5555-555555555555"),
                     FullName = "Jane Smith",
                     Email = "jane.smith@example.com",
-                    PasswordHash = "hashedpassword", // Replace with real hashed password
+                    PasswordHash = hashedPassword,
                     Role = "Customer",
                     IsActive = true
                 }
-            );
+            ); 
 
             // Seed Services (fixed PricePerKg)
             modelBuilder.Entity<Service>().HasData(

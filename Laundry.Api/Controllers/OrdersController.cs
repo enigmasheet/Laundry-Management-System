@@ -1,5 +1,6 @@
 ﻿using Laundry.Api.Data;
 using Laundry.Api.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Swashbuckle.AspNetCore.Annotations;
@@ -20,6 +21,7 @@ namespace Laundry.Api.Controllers
         /// <summary>
         /// Get all orders.
         /// </summary>
+        [Authorize]
         [HttpGet]
         [SwaggerOperation(Summary = "Get all orders", Description = "Returns a list of all orders in the system.")]
         [SwaggerResponse(200, "Successfully retrieved list of orders.")]
@@ -31,6 +33,7 @@ namespace Laundry.Api.Controllers
         /// <summary>
         /// Get a specific order by ID.
         /// </summary>
+        [Authorize]
         [HttpGet("{id}")]
         [SwaggerOperation(Summary = "Get an order by ID", Description = "Returns a specific order by its ID.")]
         [SwaggerResponse(200, "Successfully retrieved the order.")]
@@ -50,6 +53,7 @@ namespace Laundry.Api.Controllers
         /// <summary>
         /// Update an existing order by ID.
         /// </summary>
+        [Authorize]
         [HttpPut("{id}")]
         [SwaggerOperation(Summary = "Update an order", Description = "Updates the order with the given ID.")]
         [SwaggerResponse(204, "Order updated successfully.")]
@@ -86,6 +90,7 @@ namespace Laundry.Api.Controllers
         /// <summary>
         /// Create a new order.
         /// </summary>
+        [Authorize]
         [HttpPost]
         [SwaggerOperation(Summary = "Create a new order", Description = "Adds a new order to the system.")]
         [SwaggerResponse(201, "Order created successfully.")]
@@ -100,6 +105,7 @@ namespace Laundry.Api.Controllers
         /// <summary>
         /// Delete an existing order by ID.
         /// </summary>
+        [Authorize]
         [HttpDelete("{id}")]
         [SwaggerOperation(Summary = "Delete an order", Description = "Removes the order with the given ID.")]
         [SwaggerResponse(204, "Order deleted successfully.")]

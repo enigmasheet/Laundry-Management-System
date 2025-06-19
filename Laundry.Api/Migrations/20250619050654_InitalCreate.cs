@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Laundry.Api.Migrations
 {
     /// <inheritdoc />
-    public partial class injital : Migration
+    public partial class InitalCreate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -225,9 +225,9 @@ namespace Laundry.Api.Migrations
                 columns: new[] { "UserId", "Address", "Email", "FullName", "IsActive", "Latitude", "Longitude", "PasswordHash", "Phone", "RefreshToken", "RefreshTokenExpiryTime", "Role", "VendorId" },
                 values: new object[,]
                 {
-                    { new Guid("11111111-1111-1111-1111-111111111111"), null, "superadmin@laundry.com", "Super Admin", true, null, null, "hashedpassword", null, null, null, "SuperAdmin", null },
-                    { new Guid("44444444-4444-4444-4444-444444444444"), null, "john.doe@example.com", "John Doe", true, null, null, "hashedpassword", null, null, null, "Customer", null },
-                    { new Guid("55555555-5555-5555-5555-555555555555"), null, "jane.smith@example.com", "Jane Smith", true, null, null, "hashedpassword", null, null, null, "Customer", null }
+                    { new Guid("11111111-1111-1111-1111-111111111111"), null, "superadmin@laundry.com", "Super Admin", true, null, null, "$2a$11$wbiDSq0ImltzPEcBzbP/h.9Wl5Za3cwtxJbnTmh/h75rewphVaxhu", null, null, null, "SuperAdmin", null },
+                    { new Guid("44444444-4444-4444-4444-444444444444"), null, "john.doe@example.com", "John Doe", true, null, null, "$2a$11$wbiDSq0ImltzPEcBzbP/h.9Wl5Za3cwtxJbnTmh/h75rewphVaxhu", null, null, null, "Customer", null },
+                    { new Guid("55555555-5555-5555-5555-555555555555"), null, "jane.smith@example.com", "Jane Smith", true, null, null, "$2a$11$wbiDSq0ImltzPEcBzbP/h.9Wl5Za3cwtxJbnTmh/h75rewphVaxhu", null, null, null, "Customer", null }
                 });
 
             migrationBuilder.InsertData(
@@ -272,8 +272,8 @@ namespace Laundry.Api.Migrations
                 columns: new[] { "UserId", "Address", "Email", "FullName", "IsActive", "Latitude", "Longitude", "PasswordHash", "Phone", "RefreshToken", "RefreshTokenExpiryTime", "Role", "VendorId" },
                 values: new object[,]
                 {
-                    { new Guid("22222222-2222-2222-2222-222222222222"), null, "admin@sparklelaundry.com", "Vendor Admin Sparkle", true, null, null, "hashedpassword", null, null, null, "VendorAdmin", 1 },
-                    { new Guid("33333333-3333-3333-3333-333333333333"), null, "employee1@sparklelaundry.com", "Vendor Employee 1", true, null, null, "hashedpassword", null, null, null, "Employee", 1 }
+                    { new Guid("22222222-2222-2222-2222-222222222222"), null, "admin@sparklelaundry.com", "Vendor Admin Sparkle", true, null, null, "$2a$11$wbiDSq0ImltzPEcBzbP/h.9Wl5Za3cwtxJbnTmh/h75rewphVaxhu", null, null, null, "VendorAdmin", 1 },
+                    { new Guid("33333333-3333-3333-3333-333333333333"), null, "employee1@sparklelaundry.com", "Vendor Employee 1", true, null, null, "$2a$11$wbiDSq0ImltzPEcBzbP/h.9Wl5Za3cwtxJbnTmh/h75rewphVaxhu", null, null, null, "Employee", 1 }
                 });
 
             migrationBuilder.InsertData(

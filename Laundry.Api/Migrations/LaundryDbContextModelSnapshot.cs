@@ -323,7 +323,7 @@ namespace Laundry.Api.Migrations
                             Email = "superadmin@laundry.com",
                             FullName = "Super Admin",
                             IsActive = true,
-                            PasswordHash = "hashedpassword",
+                            PasswordHash = "$2a$11$wbiDSq0ImltzPEcBzbP/h.9Wl5Za3cwtxJbnTmh/h75rewphVaxhu",
                             Role = "SuperAdmin"
                         },
                         new
@@ -332,7 +332,7 @@ namespace Laundry.Api.Migrations
                             Email = "admin@sparklelaundry.com",
                             FullName = "Vendor Admin Sparkle",
                             IsActive = true,
-                            PasswordHash = "hashedpassword",
+                            PasswordHash = "$2a$11$wbiDSq0ImltzPEcBzbP/h.9Wl5Za3cwtxJbnTmh/h75rewphVaxhu",
                             Role = "VendorAdmin",
                             VendorId = 1
                         },
@@ -342,7 +342,7 @@ namespace Laundry.Api.Migrations
                             Email = "employee1@sparklelaundry.com",
                             FullName = "Vendor Employee 1",
                             IsActive = true,
-                            PasswordHash = "hashedpassword",
+                            PasswordHash = "$2a$11$wbiDSq0ImltzPEcBzbP/h.9Wl5Za3cwtxJbnTmh/h75rewphVaxhu",
                             Role = "Employee",
                             VendorId = 1
                         },
@@ -352,7 +352,7 @@ namespace Laundry.Api.Migrations
                             Email = "john.doe@example.com",
                             FullName = "John Doe",
                             IsActive = true,
-                            PasswordHash = "hashedpassword",
+                            PasswordHash = "$2a$11$wbiDSq0ImltzPEcBzbP/h.9Wl5Za3cwtxJbnTmh/h75rewphVaxhu",
                             Role = "Customer"
                         },
                         new
@@ -361,7 +361,7 @@ namespace Laundry.Api.Migrations
                             Email = "jane.smith@example.com",
                             FullName = "Jane Smith",
                             IsActive = true,
-                            PasswordHash = "hashedpassword",
+                            PasswordHash = "$2a$11$wbiDSq0ImltzPEcBzbP/h.9Wl5Za3cwtxJbnTmh/h75rewphVaxhu",
                             Role = "Customer"
                         });
                 });

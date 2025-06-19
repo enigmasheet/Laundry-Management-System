@@ -107,6 +107,17 @@ namespace Laundry.Api
                     }
                 };
             });
+            // Add CORS policy
+            builder.Services.AddCors(options =>
+            {
+                options.AddPolicy("AllowFrontend", policy =>
+                {
+                    policy.WithOrigins("https://localhost:3000") // frontend origin
+                          .AllowAnyHeader()
+                          .AllowAnyMethod()
+                          .AllowCredentials(); // critical for sending cookies
+                });
+            });
 
             // Add Authorization
             builder.Services.AddAuthorization();
@@ -123,6 +134,7 @@ namespace Laundry.Api
                     c.RoutePrefix = string.Empty; // Swagger at app root
                 });
             }
+            app.UseCors("AllowFrontend");
 
             app.UseHttpsRedirection();
 

@@ -26,13 +26,15 @@ namespace Laundry.Api.Controllers
         [HttpPost("login")]
         public async Task<IActionResult> LoginAsync([FromBody] LoginDto loginDto)
         {
+
             if (loginDto == null || string.IsNullOrWhiteSpace(loginDto.Email) || string.IsNullOrWhiteSpace(loginDto.Password))
                 return BadRequest("Email and password are required.");
 
             var user = await _context.Users
                 .SingleOrDefaultAsync(u => u.Email.ToLower() == loginDto.Email.ToLower());
+            
 
-            if (user == null || user.PasswordHash != loginDto.Password)
+            if (user == null || !BCrypt.Net.BCrypt.Verify(loginDto.Password, user.PasswordHash))
                 return Unauthorized("Invalid credentials.");
 
             var claims = new List<Claim>
