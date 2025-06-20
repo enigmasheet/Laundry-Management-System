@@ -1,16 +1,105 @@
 ﻿@inherits LayoutComponentBase
-<div class="page">
-    <div class="sidebar">
-        <NavMenu />
-    </div>
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject HttpClient Http
+@inject IJSRuntime JS
+@inject NavigationManager Navigation
+<style>
+    .sidebar {
+        background: linear-gradient(145deg, #343a40, #23272b);
+        border-right: 1px solid rgba(255, 255, 255, 0.1);
+    }
 
-    <main>
-        <div class="top-row px-4">
-            <a href="https://learn.microsoft.com/aspnet/core/" target="_blank">About</a>
+        .sidebar a.nav-link {
+            color: #ffffffb3;
+            transition: all 0.2s ease;
+        }
+
+            .sidebar a.nav-link:hover {
+                background-color: rgba(255, 255, 255, 0.1);
+                border-radius: 6px;
+                color: #fff;
+            }
+</style>
+<div class="d-flex flex-column min-vh-100" style="font-family: 'Segoe UI', sans-serif;">
+    <div class="d-flex">
+        <!-- Sidebar -->
+        <div class="bg-gradient sidebar text-white shadow-lg p-4" style="min-width: 250px; min-height: 100vh; border-top-right-radius: 12px;">
+            <h4 class="mb-4 text-center">LaundryApp</h4>
+            <NavMenu />
         </div>
 
-        <article class="content px-4">
-            @Body
-        </article>
-    </main>
+        <!-- Main Content -->
+        <main class="flex-grow-1 bg-light">
+            <!-- Top bar -->
+            <div class="bg-white d-flex justify-content-between align-items-center px-4 py-3 shadow-sm border-bottom">
+                <h5 class="m-0 text-primary">Dashboard</h5>
+                <div>
+                    @if (string.IsNullOrEmpty(userEmail))
+                    {
+                        <NavLink class="btn btn-sm btn-outline-primary" href="login">
+                            <i class="bi bi-box-arrow-in-right"></i> Login
+                        </NavLink>
+                    }
+                    else
+                    {
+                        <span class="me-3 text-muted">👋 Welcome, <strong>@userEmail</strong></span>
+                        <button class="btn btn-sm btn-outline-danger" @onclick="Logout">
+                            <i class="bi bi-box-arrow-right"></i> Logout
+                        </button>
+                    }
+                </div>
+            </div>
+
+            <!-- Page content -->
+            <article class="p-4">
+                @Body
+            </article>
+        </main>
+    </div>
 </div>
+
+
+@code {
+    private string? userEmail;
+
+    protected override async Task OnInitializedAsync()
+    {
+        AuthenticationStateProvider.AuthenticationStateChanged += OnAuthenticationStateChanged;
+        await UpdateUserEmailAsync();
+    }
+
+    private async Task UpdateUserEmailAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        userEmail = user.Identity?.IsAuthenticated == true
+            ? user.FindFirst(c => c.Type == System.Security.Claims.ClaimTypes.Email)?.Value ?? user.Identity.Name
+            : null;
+
+        StateHasChanged();
+    }
+
+    private async Task Logout()
+    {
+        try { await Http.PostAsync("api/auth/logout", null); } catch { }
+
+        await JS.InvokeVoidAsync("localStorage.removeItem", "authToken");
+        await JS.InvokeVoidAsync("localStorage.removeItem", "userEmail");
+        await JS.InvokeVoidAsync("localStorage.removeItem", "userRole");
+        await JS.InvokeVoidAsync("localStorage.removeItem", "vendorID");
+
+        ((ApiAuthenticationStateProvider)AuthenticationStateProvider).NotifyUserLogout();
+        Navigation.NavigateTo("/login", forceLoad: true);
+    }
+
+    private async void OnAuthenticationStateChanged(Task<AuthenticationState> task)
+    {
+        await UpdateUserEmailAsync();
+    }
+
+    public void Dispose()
+    {
+        AuthenticationStateProvider.AuthenticationStateChanged -= OnAuthenticationStateChanged;
+    }
+}

@@ -1,117 +1,46 @@
-﻿@inject IJSRuntime JS
-@inject NavigationManager Navigation
-@inject HttpClient Http
-@inject AuthenticationStateProvider AuthenticationStateProvider
-
-<div class="top-row ps-3 navbar navbar-dark bg-dark">
-    <div class="container-fluid">
-        <a class="navbar-brand" href="">Laundry.Client</a>
-        <button title="Navigation menu" class="navbar-toggler" @onclick="ToggleNavMenu" aria-expanded="@(!collapseNavMenu)" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-    </div>
-</div>
-
-<div class="@NavMenuCssClass nav-scrollable" @onclick="ToggleNavMenu">
-    <nav class="flex-column">
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
-                <span class="bi bi-house-door-fill" aria-hidden="true"></span> Home
-            </NavLink>
-        </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="counter">
-                <span class="bi bi-plus-square-fill" aria-hidden="true"></span> Counter
-            </NavLink>
-        </div>
-
-        @if (string.IsNullOrEmpty(userEmail))
-        {
-            <div class="nav-item px-3">
-                <NavLink class="nav-link" href="login">
-                    <span class="bi bi-box-arrow-in-right" aria-hidden="true"></span> Login
-                </NavLink>
-            </div>
-        }
-        else
-        {
-            <div class="nav-item px-3">
-                <span class="nav-link disabled">Welcome, @userEmail</span>
-            </div>
-            <div class="nav-item px-3">
-                <a class="nav-link" style="cursor:pointer" @onclick="Logout">
-                    <span class="bi bi-box-arrow-right" aria-hidden="true"></span> Logout
-                </a>
-            </div>
-        }
+﻿<div class="@NavMenuCssClass sidebar shadow-sm" @onclick="ToggleNavMenu">
+    <nav class="nav flex-column">
+        <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
+            <i class="bi bi-house-door-fill me-2"></i> Home
+        </NavLink>
+        <NavLink class="nav-link" href="counter">
+            <i class="bi bi-plus-square-fill me-2"></i> Counter
+        </NavLink>
+        <!-- Future role-based item -->
+        @* <NavLink class="nav-link" href="admin" conditionally shown for admin *@
     </nav>
 </div>
+<style>
+    .sidebar {
+        background: linear-gradient(135deg, #212529, #343a40);
+        color: white;
+        padding: 1rem;
+        border-right: 1px solid rgba(255, 255, 255, 0.1);
+        min-height: 100vh;
+        transition: all 0.3s ease;
+        width: 250px;
+    }
 
+        .sidebar .nav-link {
+            color: #ccc;
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            transition: background-color 0.2s ease;
+            font-weight: 500;
+        }
+
+            .sidebar .nav-link:hover,
+            .sidebar .nav-link.active {
+                background-color: rgba(255, 255, 255, 0.1);
+                color: #fff;
+            }
+</style>
 @code {
     private bool collapseNavMenu = true;
-    private string? NavMenuCssClass => collapseNavMenu ? "collapse" : null;
-
-    private string? userEmail;
-
-    protected override async Task OnInitializedAsync()
-    {
-        AuthenticationStateProvider.AuthenticationStateChanged += OnAuthenticationStateChanged;
-        await UpdateUserEmailAsync();
-    }
-
-    private async Task UpdateUserEmailAsync()
-    {
-        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
-        var user = authState.User;
-
-        if (user.Identity?.IsAuthenticated == true)
-        {
-            // Try to get email claim or fallback to Name
-            userEmail = user.FindFirst(c => c.Type == System.Security.Claims.ClaimTypes.Email)?.Value
-                        ?? user.Identity.Name;
-        }
-        else
-        {
-            userEmail = null;
-        }
-
-        StateHasChanged();
-    }
+    private string? NavMenuCssClass => collapseNavMenu ? "collapse" : "expanded sidebar";
 
     private void ToggleNavMenu()
     {
         collapseNavMenu = !collapseNavMenu;
-    }
-
-    private async Task Logout()
-    {
-        try
-        {
-            // Call server-side logout to remove HttpOnly cookie
-            await Http.PostAsync("api/auth/logout", null);
-        }
-        catch
-        {
-            // Even if server call fails, continue cleanup
-        }
-
-        await JS.InvokeVoidAsync("localStorage.removeItem", "authToken");
-        await JS.InvokeVoidAsync("localStorage.removeItem", "userEmail");
-        await JS.InvokeVoidAsync("localStorage.removeItem", "userRole");
-        await JS.InvokeVoidAsync("localStorage.removeItem", "vendorID");
-
-        ((ApiAuthenticationStateProvider)AuthenticationStateProvider).NotifyUserLogout();
-
-        Navigation.NavigateTo("/login", forceLoad: true);
-    }
-
-    private async void OnAuthenticationStateChanged(Task<AuthenticationState> task)
-    {
-        await UpdateUserEmailAsync();
-    }
-
-    public void Dispose()
-    {
-        AuthenticationStateProvider.AuthenticationStateChanged -= OnAuthenticationStateChanged;
     }
 }
