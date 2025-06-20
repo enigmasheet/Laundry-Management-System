@@ -12,4 +12,10 @@ namespace Laundry.Shared.DTOs
         [MinLength(6, ErrorMessage = "Password must be at least 6 characters long.")]
         public string Password { get; set; } = string.Empty;
     }
+    public class LoginResponse
+    {
+        public string Token { get; set; } = string.Empty;
+        public double ExpiresIn { get; set; }
+        public UserDto User { get; set; } = new();
+    }
 }

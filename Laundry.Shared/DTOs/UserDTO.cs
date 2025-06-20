@@ -18,8 +18,10 @@ namespace Laundry.Shared.DTOs
         [EmailAddress]
         public string Email { get; set; } = null!;
 
+        //[Required]
+        //public UserRole Role { get; set; }
         [Required]
-        public UserRole Role { get; set; }
+        public string Role { get; set; } = null!;
 
         [Phone]
         public string? Phone { get; set; }
