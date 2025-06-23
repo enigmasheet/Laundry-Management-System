@@ -1,0 +1,93 @@
+﻿@page "/vendor/{id:int?}"
+@using Laundry.Shared.DTOs
+@using Laundry.Client.Components 
+@inject HttpClient Http
+@inject NavigationManager NavigationManager
+
+<h3 class="mb-4">Vendor Details</h3>
+
+@if (vendor == null)
+{
+    <div class="text-center">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+    </div>
+}
+else if (vendor == null)
+{
+    <div class="alert alert-warning">
+        Vendor not found or an error occurred.
+    </div>
+}
+else
+{
+    <div class="card shadow-sm p-4 mb-3">
+        <h4>@vendor.Name</h4>
+        <p><strong>Email:</strong> @vendor.Email</p>
+        <p><strong>Phone:</strong> @vendor.Phone</p>
+        <p><strong>Address:</strong> @vendor.Address</p>
+        <p><strong>Description:</strong> @vendor.Description</p>
+        <p><strong>Rating:</strong> @vendor.AverageRating (@vendor.TotalReviews reviews)</p>
+
+        @if (vendor.Services?.Any() == true)
+        {
+            <h5 class="mt-4">Services</h5>
+            <ul class="list-group mb-3">
+                @foreach (var service in vendor.Services)
+                {
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        @service.Name
+                        <span class="badge bg-primary">@service.PricePerKg:C</span>
+                    </li>
+                }
+            </ul>
+        }
+
+        <div class="text-end">
+            <button class="btn btn-success" @onclick="NavigateToOrder">Order Now</button>
+        </div>
+    </div>
+    <VendorInquiry VendorId="@id" />
+
+}
+
+@code {
+    [Parameter] public int? id { get; set; }
+
+    private VendorDto? vendor;
+
+    private bool isLoading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (id == null || id <= 0)
+        {
+            NavigationManager.NavigateTo("");
+            return;
+        }
+
+        try
+        {
+            vendor = await Http.GetFromJsonAsync<VendorDto>($"api/vendors/{id}");
+        }
+        catch
+        {
+            vendor = null;
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+
+    private void NavigateToOrder()
+    {
+        if (vendor?.Id > 0)
+        {
+            NavigationManager.NavigateTo($"/order/{vendor.Id}");
+        }
+    }
+
+}

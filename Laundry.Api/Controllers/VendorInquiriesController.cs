@@ -1,5 +1,7 @@
-﻿using Laundry.Api.Data;
+﻿using AutoMapper;
+using Laundry.Api.Data;
 using Laundry.Api.Models;
+using Laundry.Shared.DTOs; // Make sure your DTO namespace is included
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -16,10 +18,12 @@ namespace Laundry.Api.Controllers
     public class VendorInquiriesController : ControllerBase
     {
         private readonly LaundryDbContext _context;
+        private readonly IMapper _mapper;
 
-        public VendorInquiriesController(LaundryDbContext context)
+        public VendorInquiriesController(LaundryDbContext context, IMapper mapper)
         {
             _context = context;
+            _mapper = mapper;
         }
 
         /// <summary>
@@ -28,9 +32,15 @@ namespace Laundry.Api.Controllers
         [HttpGet]
         [SwaggerOperation(Summary = "Get all vendor inquiries", Description = "Retrieve a list of all vendor inquiries.")]
         [SwaggerResponse(200, "List of vendor inquiries retrieved successfully.")]
-        public async Task<ActionResult<IEnumerable<VendorInquiry>>> GetVendorInquiries()
+        public async Task<ActionResult<IEnumerable<VendorInquiryDto>>> GetVendorInquiries()
         {
-            return await _context.VendorInquiries.ToListAsync();
+            var inquiries = await _context.VendorInquiries
+                .Include(v => v.Vendor)   // Include related vendor info if needed
+                .Include(c => c.Customer) // Include related customer info if needed
+                .ToListAsync();
+
+            var dtoList = _mapper.Map<List<VendorInquiryDto>>(inquiries);
+            return Ok(dtoList);
         }
 
         /// <summary>
@@ -40,16 +50,20 @@ namespace Laundry.Api.Controllers
         [SwaggerOperation(Summary = "Get vendor inquiry by ID", Description = "Retrieve a specific vendor inquiry by its ID.")]
         [SwaggerResponse(200, "Vendor inquiry retrieved successfully.")]
         [SwaggerResponse(404, "Vendor inquiry not found.")]
-        public async Task<ActionResult<VendorInquiry>> GetVendorInquiry(int id)
+        public async Task<ActionResult<VendorInquiryDto>> GetVendorInquiry(int id)
         {
-            var vendorInquiry = await _context.VendorInquiries.FindAsync(id);
+            var inquiry = await _context.VendorInquiries
+                .Include(v => v.Vendor)
+                .Include(c => c.Customer)
+                .FirstOrDefaultAsync(i => i.Id == id);
 
-            if (vendorInquiry == null)
+            if (inquiry == null)
             {
                 return NotFound();
             }
 
-            return vendorInquiry;
+            var dto = _mapper.Map<VendorInquiryDto>(inquiry);
+            return Ok(dto);
         }
 
         /// <summary>
@@ -60,14 +74,23 @@ namespace Laundry.Api.Controllers
         [SwaggerResponse(204, "Vendor inquiry updated successfully.")]
         [SwaggerResponse(400, "Invalid request - ID mismatch.")]
         [SwaggerResponse(404, "Vendor inquiry not found.")]
-        public async Task<IActionResult> PutVendorInquiry(int id, VendorInquiry vendorInquiry)
+        public async Task<IActionResult> PutVendorInquiry(int id, VendorInquiryDto vendorInquiryDto)
         {
-            if (id != vendorInquiry.Id)
+            if (id != vendorInquiryDto.Id)
             {
-                return BadRequest();
+                return BadRequest("ID in URL and body do not match.");
             }
 
-            _context.Entry(vendorInquiry).State = EntityState.Modified;
+            var inquiryEntity = await _context.VendorInquiries.FindAsync(id);
+            if (inquiryEntity == null)
+            {
+                return NotFound();
+            }
+
+            // Map updated fields from DTO to entity
+            _mapper.Map(vendorInquiryDto, inquiryEntity);
+
+            _context.Entry(inquiryEntity).State = EntityState.Modified;
 
             try
             {
@@ -94,12 +117,15 @@ namespace Laundry.Api.Controllers
         [HttpPost]
         [SwaggerOperation(Summary = "Create vendor inquiry", Description = "Add a new vendor inquiry.")]
         [SwaggerResponse(201, "Vendor inquiry created successfully.")]
-        public async Task<ActionResult<VendorInquiry>> PostVendorInquiry(VendorInquiry vendorInquiry)
+        public async Task<ActionResult<VendorInquiryDto>> PostVendorInquiry(VendorInquiryDto vendorInquiryDto)
         {
-            _context.VendorInquiries.Add(vendorInquiry);
+            var entity = _mapper.Map<VendorInquiry>(vendorInquiryDto);
+            _context.VendorInquiries.Add(entity);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction(nameof(GetVendorInquiry), new { id = vendorInquiry.Id }, vendorInquiry);
+            var createdDto = _mapper.Map<VendorInquiryDto>(entity);
+
+            return CreatedAtAction(nameof(GetVendorInquiry), new { id = entity.Id }, createdDto);
         }
 
         /// <summary>

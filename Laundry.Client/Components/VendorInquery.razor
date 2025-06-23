@@ -1,0 +1,101 @@
+﻿@using Laundry.Shared.DTOs
+@inject HttpClient Http
+@inject AuthenticationStateProvider AuthStateProvider
+
+@if (!isInitialized)
+{
+    <p>Loading inquiry form...</p>
+}
+else if (!isAuthenticated)
+{
+    <div class="alert alert-warning">
+        Please <a href="/login">log in</a> to send an inquiry.
+    </div>
+}
+else
+{
+    <h5 class="mt-5">Send Inquiry</h5>
+
+    <EditForm Model="@inquiry" OnValidSubmit="SubmitInquiry">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+
+        <div class="mb-3">
+            <label class="form-label">Your Message</label>
+            <InputTextArea class="form-control" @bind-Value="inquiry.Message" rows="4" />
+        </div>
+
+        <button type="submit" class="btn btn-primary" disabled="@isSubmitting">
+            @if (isSubmitting)
+            {
+                <span class="spinner-border spinner-border-sm me-2"></span>
+                <span>Sending...</span>
+                }
+            else
+            {
+                <span> Send Inquiry</span>
+                }
+        </button>
+
+
+
+
+        @if (!string.IsNullOrEmpty(inquirySuccess))
+        {
+            <div class="alert alert-success mt-3">@inquirySuccess</div>
+        }
+    </EditForm>
+}
+
+@code {
+    [Parameter]
+    public int VendorId { get; set; }
+
+    private VendorInquiryDto inquiry = new();
+    private string? inquirySuccess;
+    private bool isInitialized = false;
+    private bool isAuthenticated = false;
+    private bool isSubmitting = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        if (user.Identity?.IsAuthenticated == true)
+        {
+            isAuthenticated = true;
+
+            var customerIdClaim = user.FindFirst("sub")?.Value;
+            if (Guid.TryParse(customerIdClaim, out var customerId))
+            {
+                inquiry.CustomerId = customerId;
+            }
+
+            inquiry.VendorId = VendorId;
+            inquiry.SentAt = DateTime.UtcNow;
+        }
+
+        isInitialized = true;
+    }
+
+    private async Task SubmitInquiry()
+    {
+        isSubmitting = true;
+        inquiry.SentAt = DateTime.UtcNow;
+
+        var response = await Http.PostAsJsonAsync("api/vendorinquiries", inquiry);
+
+        if (response.IsSuccessStatusCode)
+        {
+            inquirySuccess = "✅ Your inquiry has been sent successfully!";
+            inquiry.Message = string.Empty;
+        }
+        else
+        {
+            inquirySuccess = "❌ There was an error sending your inquiry.";
+        }
+
+        isSubmitting = false;
+    }
+}
