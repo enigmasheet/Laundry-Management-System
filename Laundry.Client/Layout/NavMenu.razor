@@ -3,55 +3,38 @@
 <div class="sidebar shadow-sm @SidebarStateClass @MobileSidebarClass">
     <h4 class="mb-4 text-center">LaundryApp</h4>
     <nav class="nav flex-column">
-        <NavLink class="nav-link" href="" Match="NavLinkMatch.All" title="Home">
+        <NavLink class="nav-link" href="" title="Home">
             <i class="bi bi-house-door-fill me-2"></i>
-            @if (!CollapseNavMenu)
-            {
                 <span>Home</span>
-            }
+       
         </NavLink>
         <NavLink class="nav-link" href="counter" title="Counter">
             <i class="bi bi-plus-square-fill me-2"></i>
-                @if (!CollapseNavMenu)
-            {
+              
+         
                 <span>Counter</span>
-            }
+            
         </NavLink>
         <NavLink class="nav-link" href="order" title="Order">
             <i class="bi bi-cart-fill me-2"></i>
-                @if (!CollapseNavMenu)
-            {
+            
                 <span>Order</span>
-            }
+            
         </NavLink>
         @if (IsAdmin)
         {
             <NavLink class="nav-link" href="admin" title="Admin">
                 <i class="bi bi-shield-lock-fill me-2"></i>
-                @if (!CollapseNavMenu)
-                {
+              
                     <span>Admin</span>
-                }
+            
             </NavLink>
         }
     </nav>
 
-    <!-- Desktop collapse toggle -->
-    <button class="btn btn-sm btn-light toggle-btn mt-3 d-none d-md-block" @onclick="ToggleNavMenu" 
-        title="@((CollapseNavMenu ? "Expand" : "Collapse") + " sidebar")" aria-label="Toggle sidebar">
-        <i class="bi" @(collapseNavMenu ? "bi-arrow-right-square" : "bi-arrow-left-square")></i>
-    </button>
-
-    <!-- Mobile close button -->
-    <button class="btn btn-sm btn-light toggle-btn mt-3 d-md-none" @onclick="ToggleMobileSidebar" aria-label="Close sidebar">
-        <i class="bi bi-x-lg"></i> Close
-    </button>
+   
 </div>
 
-<!-- Mobile menu open button -->
-<button class="btn btn-primary d-md-none mobile-toggle-btn" @onclick="ToggleMobileSidebar" aria-label="Open sidebar">
-    <i class="bi bi-list"></i> Menu
-</button>
 
 <style>
     /* Sidebar base */
@@ -70,23 +53,7 @@
         overflow: hidden;
     }
 
-    /* Collapsed sidebar */
-    .sidebar.collapsed {
-        width: 70px;
-        padding: 1rem 0.5rem;
-    }
-
-    /* Mobile sidebar hidden by default */
-    .sidebar.mobile-hidden {
-        transform: translateX(-100%);
-        transition: transform 0.3s ease;
-    }
-
-    /* Mobile sidebar visible */
-    .sidebar.mobile-visible {
-        transform: translateX(0);
-        box-shadow: 2px 0 8px rgba(0, 0, 0, 0.3);
-    }
+   
 
     /* Nav links */
     .sidebar .nav-link {
@@ -132,36 +99,7 @@
     }
 
     /* Toggle buttons */
-    .toggle-btn {
-        background-color: rgba(255, 255, 255, 0.2);
-        color: #fff;
-        border: none;
-        width: 100%;
-        text-align: center;
-        cursor: pointer;
-    }
-
-    /* Mobile toggle button outside sidebar */
-    .mobile-toggle-btn {
-        position: fixed;
-        top: 1rem;
-        left: 1rem;
-        z-index: 1050;
-    }
-
-    /* Hide mobile toggle button on desktop */
-    @@media (min-width: 768px) {
-        .mobile-toggle-btn {
-            display: none;
-        }
-    }
-
-    /* Hide desktop toggle button on mobile */
-    @@media (max-width: 767.98px) {
-        .sidebar .toggle-btn.d-none.d-md-block {
-            display: none !important;
-        }
-    }
+   
 </style>
 
 @code {

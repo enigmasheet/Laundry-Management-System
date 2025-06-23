@@ -1,7 +1,9 @@
+using Laundry.Client.Authentication;
+using Laundry.Client.Services;
+using Laundry.Client.Services.Interface;
+using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
-using Microsoft.AspNetCore.Components.Authorization;
-using Laundry.Client.Authentication;
 
 namespace Laundry.Client
 {
@@ -16,6 +18,7 @@ namespace Laundry.Client
 
             // Register your custom AuthenticationStateProvider once
             builder.Services.AddScoped<AuthenticationStateProvider, ApiAuthenticationStateProvider>();
+            builder.Services.AddScoped<IVendorService, VendorService>();
 
             // Add Blazor authorization services
             builder.Services.AddAuthorizationCore();

@@ -1,7 +1,37 @@
 ﻿@page "/"
+@attribute [Authorize(Roles = "Customer,SuperAdmin,VendorAdmin")]
+@using Laundry.Client.Components
+@using Laundry.Shared.DTOs
+@inject IVendorService VendorService
 
 <PageTitle>Home</PageTitle>
 
-<h1>Hello, world!</h1>
+<h1>Welcome!</h1>
+<p>Browse available laundry vendors below:</p>
 
-Welcome to your new app.
+@if (vendors == null)
+{
+    <p>Loading vendors...</p>
+}
+else if (!vendors.Any())
+{
+    <p>No vendors available at the moment.</p>
+}
+else
+{
+    <div class="d-flex flex-wrap gap-3">
+        @foreach (var vendor in vendors)
+        {
+            <VendorCard Vendor="vendor" />
+        }
+    </div>
+}
+
+@code {
+    private List<VendorDto>? vendors;
+
+    protected override async Task OnInitializedAsync()
+    {
+        vendors = await VendorService.GetAllVendorsAsync();
+    }
+}

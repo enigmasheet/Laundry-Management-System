@@ -1,12 +1,12 @@
-﻿using Laundry.Api.Data;
+﻿using AutoMapper;
+using Laundry.Api.Data;
 using Laundry.Api.Models;
+using Laundry.Shared.DTOs;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Swashbuckle.AspNetCore.Annotations;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+
 
 namespace Laundry.Api.Controllers
 {
@@ -16,22 +16,31 @@ namespace Laundry.Api.Controllers
     public class VendorsController : ControllerBase
     {
         private readonly LaundryDbContext _context;
+        private readonly IMapper _mapper;
 
-        public VendorsController(LaundryDbContext context)
+        public VendorsController(LaundryDbContext context, IMapper mapper)
         {
             _context = context;
+            _mapper = mapper;
+
         }
 
         /// <summary>
         /// Get all vendors.
         /// </summary>
         [HttpGet]
-        [SwaggerOperation(Summary = "Get all vendors", Description = "Retrieves a list of all vendors.")]
-        [SwaggerResponse(200, "List of vendors retrieved successfully.")]
-        public async Task<ActionResult<IEnumerable<Vendor>>> GetVendors()
+        [SwaggerOperation(Summary = "Get all active vendors", Description = "Retrieves a list of all active vendors.")]
+        public async Task<ActionResult<IEnumerable<VendorDto>>> GetVendors()
         {
-            return await _context.Vendors.ToListAsync();
+            var vendors = await _context.Vendors
+                .Where(v => v.IsActive)
+                .ToListAsync();
+
+            var vendorDtos = _mapper.Map<List<VendorDto>>(vendors);
+
+            return Ok(vendorDtos);
         }
+
 
         /// <summary>
         /// Get a vendor by ID.
@@ -40,17 +49,19 @@ namespace Laundry.Api.Controllers
         [SwaggerOperation(Summary = "Get vendor by ID", Description = "Retrieves a specific vendor by their ID.")]
         [SwaggerResponse(200, "Vendor retrieved successfully.")]
         [SwaggerResponse(404, "Vendor not found.")]
-        public async Task<ActionResult<Vendor>> GetVendor(int id)
+        public async Task<ActionResult<VendorDto>> GetVendor(int id)
         {
-            var vendor = await _context.Vendors.FindAsync(id);
+            var vendor = await _context.Vendors
+                .Include(v => v.Services) // Add other Includes as needed
+                .FirstOrDefaultAsync(v => v.Id == id);
 
             if (vendor == null)
-            {
                 return NotFound();
-            }
 
-            return vendor;
+            var vendorDto = _mapper.Map<VendorDto>(vendor);
+            return Ok(vendorDto);
         }
+
 
         /// <summary>
         /// Update an existing vendor.

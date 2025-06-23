@@ -1,0 +1,25 @@
+﻿@using Laundry.Shared.DTOs
+@inject NavigationManager NavigationManager
+
+<div class="card shadow-sm p-3 mb-3 bg-white rounded" style="max-width: 400px; cursor:pointer;"
+     @onclick="NavigateToDetails">
+    <div class="card-body">
+        <h5 class="card-title">@Vendor.Name</h5>
+        <h6 class="card-subtitle mb-2 text-muted">@Vendor.Email</h6>
+        <p class="card-text">@Vendor.Description</p>
+
+        <p><strong>Phone:</strong> @Vendor.Phone</p>
+        <p><strong>Address:</strong> @Vendor.Address</p>
+        <p><strong>Rating:</strong> @Vendor.AverageRating (@Vendor.TotalReviews reviews)</p>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public VendorDto Vendor { get; set; } = new();
+
+    private void NavigateToDetails()
+    {
+        NavigationManager.NavigateTo($"/vendor/{Vendor.Id}");
+    }
+}

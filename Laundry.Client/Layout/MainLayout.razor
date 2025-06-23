@@ -13,7 +13,7 @@
         <main class="flex-grow-1 bg-light d-flex flex-column">
             <!-- Top bar -->
             <div class="bg-white d-flex justify-content-between align-items-center px-4 py-3 shadow-sm border-bottom">
-                <h5 class="m-0 text-primary">Dashboard</h5>
+                <h5 class="m-0 text-primary">@PageTitle</h5>
                 <div>
                     @if (string.IsNullOrEmpty(userEmail))
                     {
@@ -23,7 +23,7 @@
                     }
                     else
                     {
-                        <span class="me-3 text-muted">👋 Welcome, <strong>@userEmail</strong></span>
+                        <span class="me-3 text-muted flex">👋 Welcome, <strong>@userEmail</strong></span>
                         <button class="btn btn-sm btn-outline-danger" @onclick="Logout">
                             <i class="bi bi-box-arrow-right"></i> Logout
                         </button>
@@ -58,30 +58,65 @@
     }
 
     @@media (min-width: 768px) {
-    main{
-    margin-left: 250px;
-    }
+        main {
+            margin-left: 250px;
+        }
 
-    main.collapsed {
-        margin-left: 70px;
-    }
-
+            main.collapsed {
+                margin-left: 70px;
+            }
     }
 </style>
-
 
 @code {
     private string? userEmail;
     private string? userRole;
-
-    
-
+    private string PageTitle = "Dashboard";
 
     protected override async Task OnInitializedAsync()
     {
         AuthenticationStateProvider.AuthenticationStateChanged += OnAuthenticationStateChanged;
         await UpdateUserEmailAsync();
+        UpdatePageTitle();
+        Navigation.LocationChanged += OnLocationChanged;
     }
+
+    private static readonly Dictionary<string, string> RouteTitles = new()
+{
+    { "", "Vendor List" },
+    { "vendor/", "Vendor Details" },
+    { "order/", "Place Order" },
+    { "orders", "Order History" },
+    { "inquiry/", "Send Inquiry" },
+    { "inquiries", "Inquiry List" },
+    { "about/", "About Vendor" },
+    { "login", "Login" },
+    { "register", "Register" },
+    { "profile", "User Profile" },
+    { "admin", "Admin Panel" },
+    { "settings", "Settings" },
+    { "reports", "Reports" },
+    { "support", "Support" },
+};
+
+    private void UpdatePageTitle()
+    {
+        var relativePath = Navigation.ToBaseRelativePath(Navigation.Uri).ToLowerInvariant();
+
+        PageTitle = ""; // default
+
+        foreach (var prefix in RouteTitles.Keys)
+        {
+            if (relativePath.StartsWith(prefix))
+            {
+                PageTitle = RouteTitles[prefix];
+                break;
+            }
+        }
+
+        StateHasChanged();
+    }
+
 
     private async Task UpdateUserEmailAsync()
     {
@@ -123,8 +158,14 @@
         await UpdateUserEmailAsync();
     }
 
+    private void OnLocationChanged(object? sender, Microsoft.AspNetCore.Components.Routing.LocationChangedEventArgs e)
+    {
+        UpdatePageTitle();
+    }
+
     public void Dispose()
     {
         AuthenticationStateProvider.AuthenticationStateChanged -= OnAuthenticationStateChanged;
+        Navigation.LocationChanged -= OnLocationChanged;
     }
 }
