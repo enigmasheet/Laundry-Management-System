@@ -1,0 +1,128 @@
+﻿@page "/order"
+@using Laundry.Shared.DTOs
+@using Laundry.Shared.Enums
+@using Microsoft.AspNetCore.Components.Forms
+
+<EditForm Model="@order" OnValidSubmit="HandleValidSubmit">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <h3>Create Order</h3>
+
+    <div class="mb-3">
+        <label>Customer ID</label>
+        <InputText @bind-Value="order.CustomerId" class="form-control" />
+    </div>
+
+    <div class="mb-3">
+        <label>Vendor ID</label>
+        <InputNumber @bind-Value="order.VendorId" class="form-control" />
+    </div>
+
+    <div class="mb-3">
+        <label>Created At</label>
+        <InputDate @bind-Value="order.CreatedAt" class="form-control" />
+    </div>
+
+    <div class="mb-3">
+        <label>Pickup Date</label>
+        <InputDate @bind-Value="order.PickupDate" class="form-control" />
+    </div>
+
+    <div class="mb-3">
+        <label>Delivery Date</label>
+        <InputDate @bind-Value="order.DeliveryDate" class="form-control" />
+    </div>
+
+    <div class="mb-3">
+        <label>Status</label>
+        <InputSelect @bind-Value="order.Status" class="form-control">
+            @foreach (var status in Enum.GetValues<OrderStatus>())
+            {
+                <option value="@status">@status</option>
+            }
+        </InputSelect>
+    </div>
+
+    <h4>Order Items</h4>
+
+    @foreach (var item in order.OrderItems)
+    {
+        <div class="border p-2 mb-2">
+            <div class="mb-2">
+                <label>Service ID</label>
+                <InputNumber @bind-Value="item.ServiceId" class="form-control" />
+            </div>
+
+            <div class="mb-2">
+                <label>Quantity (Kg)</label>
+                <InputNumber @bind-Value="item.QuantityKg" class="form-control" />
+            </div>
+
+            <div class="mb-2">
+                <label>Unit Price</label>
+                <InputNumber @bind-Value="item.UnitPrice" class="form-control" />
+            </div>
+
+            <div class="mb-2">
+                <label>Total Price:</label>
+                <span>@item.TotalPrice:C</span>
+            </div>
+
+            <button type="button" class="btn btn-danger" @onclick="() => RemoveOrderItem(item)">Remove</button>
+        </div>
+    }
+
+    <button type="button" class="btn btn-secondary mb-3" @onclick="AddOrderItem">Add Item</button>
+
+    <div class="mb-3">
+        <strong>Total Amount:</strong> @order.TotalAmount:C
+    </div>
+
+    <button type="submit" class="btn btn-primary">Submit Order</button>
+</EditForm>
+
+@code {
+    private OrderDto order = new()
+    {
+        Id = 1,
+        CustomerId = Guid.NewGuid(),
+        VendorId = 1,
+        CreatedAt = DateTime.Now,
+        Status = OrderStatus.Pending,
+        OrderItems = new List<OrderItemDto>
+        {
+            new OrderItemDto
+            {
+                Id = 1,
+                OrderId = 1,
+                ServiceId = 101,
+                QuantityKg = 1.0,
+                UnitPrice = 10.0m
+            }
+        }
+    };
+
+    private void AddOrderItem()
+    {
+        order.OrderItems.Add(new OrderItemDto
+        {
+            Id = order.OrderItems.Count + 1,
+            OrderId = order.Id,
+            ServiceId = 0,
+            QuantityKg = 1.0,
+            UnitPrice = 0.0m
+        });
+    }
+
+    private void RemoveOrderItem(OrderItemDto item)
+    {
+        order.OrderItems.Remove(item);
+    }
+
+    private void HandleValidSubmit()
+    {
+        // Replace this with your actual saving logic
+        Console.WriteLine("Order submitted successfully!");
+    }
+}
