@@ -43,6 +43,7 @@ namespace Laundry.Api.Controllers
                 new Claim(ClaimTypes.Name, user.FullName ?? string.Empty),
                 new Claim(ClaimTypes.Email, user.Email ?? string.Empty),
                 new Claim(ClaimTypes.Role, user.Role ?? string.Empty),
+                new Claim(ClaimTypes.Role, user.Role ?? string.Empty),
                 new Claim("isActive", user.IsActive.ToString())
             };
 

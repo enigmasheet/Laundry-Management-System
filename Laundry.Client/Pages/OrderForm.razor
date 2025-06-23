@@ -1,92 +1,113 @@
 ﻿@page "/order"
+@attribute [Authorize(Roles = "SuperAdmin,VendorAdmin,Customer,Employee")]
 @using Laundry.Shared.DTOs
 @using Laundry.Shared.Enums
+@using Microsoft.AspNetCore.Authorization
 @using Microsoft.AspNetCore.Components.Forms
+@using Microsoft.AspNetCore.Components.Authorization
+@inject AuthenticationStateProvider AuthenticationStateProvider
 
 <EditForm Model="@order" OnValidSubmit="HandleValidSubmit">
     <DataAnnotationsValidator />
     <ValidationSummary />
 
-    <h3>Create Order</h3>
+    <h3 class="text-center mb-4">Create Order</h3>
 
-    <div class="mb-3">
-        <label>Customer ID</label>
-        <InputText @bind-Value="order.CustomerId" class="form-control" />
-    </div>
-
-    <div class="mb-3">
-        <label>Vendor ID</label>
-        <InputNumber @bind-Value="order.VendorId" class="form-control" />
-    </div>
-
-    <div class="mb-3">
-        <label>Created At</label>
-        <InputDate @bind-Value="order.CreatedAt" class="form-control" />
-    </div>
-
-    <div class="mb-3">
-        <label>Pickup Date</label>
-        <InputDate @bind-Value="order.PickupDate" class="form-control" />
-    </div>
-
-    <div class="mb-3">
-        <label>Delivery Date</label>
-        <InputDate @bind-Value="order.DeliveryDate" class="form-control" />
-    </div>
-
-    <div class="mb-3">
-        <label>Status</label>
-        <InputSelect @bind-Value="order.Status" class="form-control">
-            @foreach (var status in Enum.GetValues<OrderStatus>())
+    <div class="row g-3">
+        <div class="col-md-6">
+            <label class="form-label">Customer Phone</label>
+            @if (isCustomerRole)
             {
-                <option value="@status">@status</option>
+                <InputText @bind-Value="CustomerPhoneString" class="form-control" readonly />
             }
-        </InputSelect>
+            else
+            {
+                <InputText @bind-Value="CustomerPhoneString" class="form-control" />
+            }
+        </div>
+
+        <div class="col-md-6">
+            <label class="form-label">Vendor ID</label>
+            <InputNumber @bind-Value="order.VendorId" class="form-control" />
+        </div>
+
+        <div class="col-md-4">
+            <label class="form-label">Created At</label>
+            <InputDate @bind-Value="order.CreatedAt" class="form-control" />
+        </div>
+
+        <div class="col-md-4">
+            <label class="form-label">Pickup Date</label>
+            <InputDate @bind-Value="order.PickupDate" class="form-control" />
+        </div>
+
+        <div class="col-md-4">
+            <label class="form-label">Delivery Date</label>
+            <InputDate @bind-Value="order.DeliveryDate" class="form-control" />
+        </div>
+
+        <div class="col-md-12">
+            <label class="form-label">Status</label>
+            <InputSelect @bind-Value="order.Status" class="form-control">
+                @foreach (var status in Enum.GetValues<OrderStatus>())
+                {
+                    <option value="@status">@status</option>
+                }
+            </InputSelect>
+        </div>
     </div>
 
-    <h4>Order Items</h4>
+    <h4 class="mt-4">Order Items</h4>
 
     @foreach (var item in order.OrderItems)
     {
-        <div class="border p-2 mb-2">
-            <div class="mb-2">
-                <label>Service ID</label>
-                <InputNumber @bind-Value="item.ServiceId" class="form-control" />
-            </div>
+        <div class="border p-3 mb-3 rounded shadow-sm bg-light">
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <label class="form-label">Service ID</label>
+                    <InputNumber @bind-Value="item.ServiceId" class="form-control" />
+                </div>
 
-            <div class="mb-2">
-                <label>Quantity (Kg)</label>
-                <InputNumber @bind-Value="item.QuantityKg" class="form-control" />
-            </div>
+                <div class="col-md-4">
+                    <label class="form-label">Quantity (Kg)</label>
+                    <InputNumber @bind-Value="item.QuantityKg" class="form-control" />
+                </div>
 
-            <div class="mb-2">
-                <label>Unit Price</label>
-                <InputNumber @bind-Value="item.UnitPrice" class="form-control" />
-            </div>
+                <div class="col-md-4">
+                    <label class="form-label">Unit Price</label>
+                    <InputNumber @bind-Value="item.UnitPrice" class="form-control" />
+                </div>
 
-            <div class="mb-2">
-                <label>Total Price:</label>
-                <span>@item.TotalPrice:C</span>
-            </div>
+                <div class="col-md-6 mt-2">
+                    <label class="form-label">Total Price</label>
+                    <div class="form-control-plaintext fw-bold">@item.TotalPrice:C</div>
+                </div>
 
-            <button type="button" class="btn btn-danger" @onclick="() => RemoveOrderItem(item)">Remove</button>
+                <div class="col-md-6 mt-4 text-end">
+                    <button type="button" class="btn btn-danger" @onclick="() => RemoveOrderItem(item)">Remove</button>
+                </div>
+            </div>
         </div>
     }
 
-    <button type="button" class="btn btn-secondary mb-3" @onclick="AddOrderItem">Add Item</button>
+    <button type="button" class="btn btn-outline-secondary mb-3" @onclick="AddOrderItem">+ Add Item</button>
 
-    <div class="mb-3">
-        <strong>Total Amount:</strong> @order.TotalAmount:C
+    <div class="mb-4">
+        <strong>Total Amount:</strong>
+        <span class="ms-2 fw-bold text-primary">@order.TotalAmount:C</span>
     </div>
 
-    <button type="submit" class="btn btn-primary">Submit Order</button>
+    <div class="text-center">
+        <button type="submit" class="btn btn-primary px-4">Submit Order</button>
+    </div>
 </EditForm>
+
 
 @code {
     private OrderDto order = new()
     {
         Id = 1,
-        CustomerId = Guid.NewGuid(),
+        CustomerPhone = "",
         VendorId = 1,
         CreatedAt = DateTime.Now,
         Status = OrderStatus.Pending,
@@ -102,6 +123,33 @@
             }
         }
     };
+
+    private bool isCustomerRole = false;
+
+    private string CustomerPhoneString
+    {
+        get => order.CustomerPhone ?? "";
+        set => order.CustomerPhone = value;
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        isCustomerRole = user.IsInRole("Customer");
+
+        if (user.Identity?.IsAuthenticated == true && isCustomerRole)
+        {
+            // Common claim types for phone numbers: "phone_number", "phone"
+            var phoneClaim = user.FindFirst(c => c.Type == "phone_number" || c.Type == "phone")?.Value;
+
+            if (!string.IsNullOrWhiteSpace(phoneClaim))
+            {
+                order.CustomerPhone = phoneClaim;
+            }
+        }
+    }
 
     private void AddOrderItem()
     {
@@ -122,7 +170,7 @@
 
     private void HandleValidSubmit()
     {
-        // Replace this with your actual saving logic
-        Console.WriteLine("Order submitted successfully!");
+        Console.WriteLine($"Order submitted. Customer Phone: {order.CustomerPhone}");
+        // TODO: Save logic here
     }
 }

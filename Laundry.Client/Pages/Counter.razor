@@ -9,7 +9,8 @@
 
 <AuthorizeView Roles="SuperAdmin">
     <Authorized>
-        <h1>Counter</h1>        <p>Authorized as SuperAdmin</p>
+        <h1>Counter</h1>        
+        <p>Authorized as SuperAdmin</p>
 
         <p role="status">Current count: @currentCount</p>
         <button class="btn btn-primary" @onclick="IncrementCount">Click me</button>

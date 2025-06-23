@@ -3,33 +3,14 @@
 @inject HttpClient Http
 @inject IJSRuntime JS
 @inject NavigationManager Navigation
-<style>
-    .sidebar {
-        background: linear-gradient(145deg, #343a40, #23272b);
-        border-right: 1px solid rgba(255, 255, 255, 0.1);
-    }
 
-        .sidebar a.nav-link {
-            color: #ffffffb3;
-            transition: all 0.2s ease;
-        }
-
-            .sidebar a.nav-link:hover {
-                background-color: rgba(255, 255, 255, 0.1);
-                border-radius: 6px;
-                color: #fff;
-            }
-</style>
 <div class="d-flex flex-column min-vh-100" style="font-family: 'Segoe UI', sans-serif;">
-    <div class="d-flex">
+    <div class="d-flex flex-grow-1">
         <!-- Sidebar -->
-        <div class="bg-gradient sidebar text-white shadow-lg p-4" style="min-width: 250px; min-height: 100vh; border-top-right-radius: 12px;">
-            <h4 class="mb-4 text-center">LaundryApp</h4>
-            <NavMenu />
-        </div>
+        <NavMenu />
 
         <!-- Main Content -->
-        <main class="flex-grow-1 bg-light">
+        <main class="flex-grow-1 bg-light d-flex flex-column">
             <!-- Top bar -->
             <div class="bg-white d-flex justify-content-between align-items-center px-4 py-3 shadow-sm border-bottom">
                 <h5 class="m-0 text-primary">Dashboard</h5>
@@ -51,16 +32,50 @@
             </div>
 
             <!-- Page content -->
-            <article class="p-4">
+            <article class="p-4 flex-grow-1 overflow-auto">
                 @Body
             </article>
+
+            <!-- Footer -->
+            <footer class="bg-white text-muted text-center py-2 border-top small">
+                @if (!string.IsNullOrEmpty(userRole))
+                {
+                    <span>You are logged in as <strong>@userRole</strong>.</span>
+                }
+                else
+                {
+                    <span>Not logged in.</span>
+                }
+            </footer>
         </main>
     </div>
 </div>
 
+<style>
+    main {
+        transition: margin-left 0.3s ease;
+        min-height: 100vh;
+    }
+
+    @@media (min-width: 768px) {
+    main{
+    margin-left: 250px;
+    }
+
+    main.collapsed {
+        margin-left: 70px;
+    }
+
+    }
+</style>
+
 
 @code {
     private string? userEmail;
+    private string? userRole;
+
+    
+
 
     protected override async Task OnInitializedAsync()
     {
@@ -73,9 +88,19 @@
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
         var user = authState.User;
 
-        userEmail = user.Identity?.IsAuthenticated == true
-            ? user.FindFirst(c => c.Type == System.Security.Claims.ClaimTypes.Email)?.Value ?? user.Identity.Name
-            : null;
+        if (user.Identity?.IsAuthenticated == true)
+        {
+            userEmail = user.FindFirst(c => c.Type == System.Security.Claims.ClaimTypes.Email)?.Value
+                        ?? user.Identity.Name;
+
+            var roleClaim = user.FindFirst(c => c.Type == System.Security.Claims.ClaimTypes.Role);
+            userRole = roleClaim?.Value ?? "Unknown";
+        }
+        else
+        {
+            userEmail = null;
+            userRole = null;
+        }
 
         StateHasChanged();
     }

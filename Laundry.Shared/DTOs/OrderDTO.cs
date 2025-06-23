@@ -12,6 +12,7 @@ namespace Laundry.Shared.DTOs
 
         [Required]
         public Guid CustomerId { get; set; }
+        public string? CustomerPhone { get; set; }
 
         public UserDto? Customer { get; set; }
 
