@@ -19,6 +19,7 @@ namespace Laundry.Shared.DTOs
         [Required]
         [Range(1, int.MaxValue, ErrorMessage = "Vendor Id must be positive.")]
         public int VendorId { get; set; }
+        public string OrderCode => $"{VendorId}_{Id}";
 
         public VendorDto? Vendor { get; set; }
 
@@ -41,8 +42,7 @@ namespace Laundry.Shared.DTOs
         [MinLength(1, ErrorMessage = "Order must contain at least one item.")]
         public List<OrderItemDto> OrderItems { get; set; } = new List<OrderItemDto>();
 
-        [JsonIgnore]
-        public decimal TotalAmount => OrderItems.Sum(item => item.TotalPrice);
+        public decimal TotalAmount { get; set; }
 
         // Custom validation: DeliveryDate must not be earlier than PickupDate
         public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)

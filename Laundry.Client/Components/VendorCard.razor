@@ -12,6 +12,9 @@
         <p><strong>Address:</strong> @Vendor.Address</p>
         <p><strong>Rating:</strong> @Vendor.AverageRating (@Vendor.TotalReviews reviews)</p>
     </div>
+    <div class="card-footer text-end">
+        <button class="btn btn-primary" @onclick="NavigateToOrder">Order Now</button>
+    </div>
 </div>
 
 @code {
@@ -22,4 +25,9 @@
     {
         NavigationManager.NavigateTo($"/vendor/{Vendor.Id}");
     }
+    private void NavigateToOrder()
+    {
+        NavigationManager.NavigateTo($"/order/{Vendor.Id}");
+    }
+
 }

@@ -25,8 +25,7 @@ namespace Laundry.Shared.DTOs
         public decimal UnitPrice { get; set; }
 
         [Display(Name = "Total Price")]
-        [JsonIgnore] // Optional: exclude from JSON if you prefer to compute client-side
-        public decimal TotalPrice => (decimal)QuantityKg * UnitPrice;
+        public decimal TotalPrice { get; set; }
 
         // Optional detailed service info
         public ServiceDto? Service { get; set; }

@@ -23,7 +23,8 @@ namespace Laundry.Api.Models
         [Range(0, double.MaxValue)]
         public decimal UnitPrice { get; set; }
 
-        [NotMapped]
-        public decimal TotalPrice => (decimal)QuantityKg * UnitPrice;
+        [Column(TypeName = "decimal(18,2)")]
+        public decimal TotalPrice { get; set; }
+
     }
 }

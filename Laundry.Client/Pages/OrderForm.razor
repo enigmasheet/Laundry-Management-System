@@ -1,19 +1,22 @@
-﻿@page "/order"
+﻿@page "/order/{id:int?}"
 @attribute [Authorize(Roles = "SuperAdmin,VendorAdmin,Customer,Employee")]
+@using Laundry.Client.Services
 @using Laundry.Shared.DTOs
 @using Laundry.Shared.Enums
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.AspNetCore.Components.Forms
 @using Microsoft.AspNetCore.Components.Authorization
 @inject AuthenticationStateProvider AuthenticationStateProvider
+@inject IVendorService VendorService
 
 <EditForm Model="@order" OnValidSubmit="HandleValidSubmit">
     <DataAnnotationsValidator />
     <ValidationSummary />
 
-    <h3 class="text-center mb-4">Create Order</h3>
+    <h3 class="text-center mb-4">@((isCustomerRole) ? "Place Your Order" : "Create or Edit Order")</h3>
 
     <div class="row g-3">
+        <p><strong>Order Code:</strong> @order.OrderCode</p>
         <div class="col-md-6">
             <label class="form-label">Customer Phone</label>
             @if (isCustomerRole)
@@ -28,17 +31,26 @@
 
         <div class="col-md-6">
             <label class="form-label">Vendor ID</label>
-            <InputNumber @bind-Value="order.VendorId" class="form-control" />
-        </div>
+            <InputSelect @bind-Value="order.VendorId" class="form-control" @onchange="VendorChanged">
+                <option value="">-- Select Vendor --</option>
+                @if (vendors == null || vendors.Count == 0)
+                {
+                    <option disabled>Loading vendors...</option>
+                }
+                else
+                {
+                    @foreach (var vendor in vendors)
+                    {
+                        <option value="@vendor.Id">@vendor.Name</option>
+                    }
+                }
+            </InputSelect>
 
-        <div class="col-md-4">
-            <label class="form-label">Created At</label>
-            <InputDate @bind-Value="order.CreatedAt" class="form-control" />
         </div>
 
         <div class="col-md-4">
             <label class="form-label">Pickup Date</label>
-            <InputDate @bind-Value="order.PickupDate" class="form-control" />
+            <InputDate @bind-Value="order.PickupDate" class="form-control" @onchange="PickupDateChanged" />
         </div>
 
         <div class="col-md-4">
@@ -46,15 +58,18 @@
             <InputDate @bind-Value="order.DeliveryDate" class="form-control" />
         </div>
 
-        <div class="col-md-12">
-            <label class="form-label">Status</label>
-            <InputSelect @bind-Value="order.Status" class="form-control">
-                @foreach (var status in Enum.GetValues<OrderStatus>())
-                {
-                    <option value="@status">@status</option>
-                }
-            </InputSelect>
-        </div>
+        @if (!isCustomerRole)
+        {
+            <div class="col-md-12">
+                <label class="form-label">Status</label>
+                <InputSelect @bind-Value="order.Status" class="form-control">
+                    @foreach (var status in Enum.GetValues<OrderStatus>())
+                    {
+                        <option value="@status">@status</option>
+                    }
+                </InputSelect>
+            </div>
+        }
     </div>
 
     <h4 class="mt-4">Order Items</h4>
@@ -70,12 +85,12 @@
 
                 <div class="col-md-4">
                     <label class="form-label">Quantity (Kg)</label>
-                    <InputNumber @bind-Value="item.QuantityKg" class="form-control" />
+                    <InputNumber @bind-Value="item.QuantityKg" class="form-control" @oninput="RecalculateTotal" />
                 </div>
 
                 <div class="col-md-4">
                     <label class="form-label">Unit Price</label>
-                    <InputNumber @bind-Value="item.UnitPrice" class="form-control" />
+                    <InputNumber @bind-Value="item.UnitPrice" class="form-control" @oninput="RecalculateTotal" />
                 </div>
 
                 <div class="col-md-6 mt-2">
@@ -83,14 +98,18 @@
                     <div class="form-control-plaintext fw-bold">@item.TotalPrice:C</div>
                 </div>
 
-                <div class="col-md-6 mt-4 text-end">
-                    <button type="button" class="btn btn-danger" @onclick="() => RemoveOrderItem(item)">Remove</button>
-                </div>
+                
+                    <div class="col-md-6 mt-4 text-end">
+                        <button type="button" class="btn btn-danger" @onclick="() => RemoveOrderItem(item)">Remove</button>
+                    </div>
+                
             </div>
         </div>
     }
 
-    <button type="button" class="btn btn-outline-secondary mb-3" @onclick="AddOrderItem">+ Add Item</button>
+    
+        <button type="button" class="btn btn-outline-secondary mb-3" @onclick="AddOrderItem">+ Add Item</button>
+ 
 
     <div class="mb-4">
         <strong>Total Amount:</strong>
@@ -102,29 +121,13 @@
     </div>
 </EditForm>
 
-
 @code {
-    private OrderDto order = new()
-    {
-        Id = 1,
-        CustomerPhone = "",
-        VendorId = 1,
-        CreatedAt = DateTime.Now,
-        Status = OrderStatus.Pending,
-        OrderItems = new List<OrderItemDto>
-        {
-            new OrderItemDto
-            {
-                Id = 1,
-                OrderId = 1,
-                ServiceId = 101,
-                QuantityKg = 1.0,
-                UnitPrice = 10.0m
-            }
-        }
-    };
+    [Parameter]
+    public int? Id { get; set; }
 
+    private OrderDto order = new();
     private bool isCustomerRole = false;
+    private List<VendorDto> vendors = new();
 
     private string CustomerPhoneString
     {
@@ -138,39 +141,99 @@
         var user = authState.User;
 
         isCustomerRole = user.IsInRole("Customer");
-
         if (user.Identity?.IsAuthenticated == true && isCustomerRole)
         {
-            // Common claim types for phone numbers: "phone_number", "phone"
             var phoneClaim = user.FindFirst(c => c.Type == "phone_number" || c.Type == "phone")?.Value;
-
             if (!string.IsNullOrWhiteSpace(phoneClaim))
             {
                 order.CustomerPhone = phoneClaim;
             }
         }
+        vendors = await VendorService.GetAllVendorsAsync();
+        if (Id.HasValue)
+        {
+            order.VendorId = Id.Value;
+        }
+
+        InitializeNewOrder();
+    }
+
+    protected override Task OnParametersSetAsync()
+    {
+        return base.OnParametersSetAsync();
+    }
+
+    private void InitializeNewOrder()
+    {
+        order.Id = 1;
+        order.VendorId = order.VendorId == 0 ? 1 : order.VendorId;
+        order.CreatedAt = DateTime.Now;
+        order.PickupDate = DateTime.Today;
+        order.DeliveryDate = DateTime.Today.AddDays(2);
+        order.Status = OrderStatus.Pending;
+        order.OrderItems = new List<OrderItemDto>
+        {
+            new()
+            {
+                Id = 1,
+                OrderId = 1,
+                ServiceId = 101,
+                QuantityKg = 1.0,
+                UnitPrice = 10.0m
+            }
+        };
+    }
+
+    private Task PickupDateChanged(ChangeEventArgs e)
+    {
+        if (DateTime.TryParse(e.Value?.ToString(), out DateTime newPickup))
+        {
+            order.PickupDate = newPickup;
+            order.DeliveryDate = newPickup.AddDays(2);
+        }
+        return Task.CompletedTask;
     }
 
     private void AddOrderItem()
     {
-        order.OrderItems.Add(new OrderItemDto
+        var newItem = new OrderItemDto
         {
             Id = order.OrderItems.Count + 1,
             OrderId = order.Id,
             ServiceId = 0,
             QuantityKg = 1.0,
             UnitPrice = 0.0m
-        });
+        };
+        order.OrderItems.Add(newItem);
+        RecalculateTotal();
     }
 
     private void RemoveOrderItem(OrderItemDto item)
     {
         order.OrderItems.Remove(item);
+        RecalculateTotal();
+    }
+
+    private void RecalculateTotal()
+    {
+        foreach (var i in order.OrderItems)
+        {
+            i.TotalPrice = (decimal)i.QuantityKg * i.UnitPrice;
+        }
+        order.TotalAmount = order.OrderItems.Sum(i => i.TotalPrice);
+        StateHasChanged();
     }
 
     private void HandleValidSubmit()
     {
-        Console.WriteLine($"Order submitted. Customer Phone: {order.CustomerPhone}");
-        // TODO: Save logic here
+        Console.WriteLine($"Order submitted. Customer Phone: {order.CustomerPhone}, Total: {order.TotalAmount}");
+        // TODO: Call your API to save order here
+    }
+    private void VendorChanged(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out int selectedVendorId))
+        {
+            order.VendorId = selectedVendorId;
+        }
     }
 }
