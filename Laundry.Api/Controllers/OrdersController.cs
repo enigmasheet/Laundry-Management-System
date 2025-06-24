@@ -1,5 +1,7 @@
-﻿using Laundry.Api.Data;
+﻿using AutoMapper;
+using Laundry.Api.Data;
 using Laundry.Api.Models;
+using Laundry.Shared.DTOs;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -12,10 +14,13 @@ namespace Laundry.Api.Controllers
     public class OrdersController : ControllerBase
     {
         private readonly LaundryDbContext _context;
+        private readonly IMapper _mapper;
 
-        public OrdersController(LaundryDbContext context)
+        public OrdersController(LaundryDbContext context, IMapper mapper)
         {
-            _context = context;
+            _context = context; 
+            _mapper = mapper;
+
         }
 
         /// <summary>
@@ -25,9 +30,11 @@ namespace Laundry.Api.Controllers
         [HttpGet]
         [SwaggerOperation(Summary = "Get all orders", Description = "Returns a list of all orders in the system.")]
         [SwaggerResponse(200, "Successfully retrieved list of orders.")]
-        public async Task<ActionResult<IEnumerable<Order>>> GetOrders()
+        public async Task<ActionResult<IEnumerable<OrderDto>>> GetOrders()
         {
-            return await _context.Orders.ToListAsync();
+            var orders = await _context.Orders.ToListAsync();
+            var orderDto = _mapper.Map<List<OrderDto>>(orders);
+            return Ok(orderDto);
         }
 
         /// <summary>
@@ -38,16 +45,16 @@ namespace Laundry.Api.Controllers
         [SwaggerOperation(Summary = "Get an order by ID", Description = "Returns a specific order by its ID.")]
         [SwaggerResponse(200, "Successfully retrieved the order.")]
         [SwaggerResponse(404, "Order not found.")]
-        public async Task<ActionResult<Order>> GetOrder(int id)
+        public async Task<ActionResult<OrderDto>> GetOrder(int id)
         {
-            var order = await _context.Orders.FindAsync(id);
+            var orderAsync = await _context.Orders.FindAsync(id);//search by orderCode(future)
 
-            if (order == null)
+            if (orderAsync == null)
             {
                 return NotFound();
             }
-
-            return order;
+            var order = _mapper.Map<List<OrderDto>>(orderAsync);
+            return Ok(order);
         }
 
         /// <summary>
@@ -59,14 +66,22 @@ namespace Laundry.Api.Controllers
         [SwaggerResponse(204, "Order updated successfully.")]
         [SwaggerResponse(400, "Invalid request (ID mismatch).")]
         [SwaggerResponse(404, "Order not found.")]
-        public async Task<IActionResult> PutOrder(int id, Order order)
+        public async Task<IActionResult> PutOrder(int id, OrderDto orderDto)
         {
-            if (id != order.Id)
+            if (id != orderDto.Id)
             {
                 return BadRequest();
             }
 
-            _context.Entry(order).State = EntityState.Modified;
+            var orderEntity = await _context.Orders.FindAsync(id);
+
+            if (orderEntity == null)
+            {
+                return NotFound();
+            }
+
+            _mapper.Map(orderDto, orderEntity);
+            _context.Entry(orderEntity).State = EntityState.Modified; 
 
             try
             {
@@ -94,12 +109,14 @@ namespace Laundry.Api.Controllers
         [HttpPost]
         [SwaggerOperation(Summary = "Create a new order", Description = "Adds a new order to the system.")]
         [SwaggerResponse(201, "Order created successfully.")]
-        public async Task<ActionResult<Order>> PostOrder(Order order)
+        public async Task<ActionResult<OrderDto>> PostOrder(OrderDto orderDto)
         {
-            _context.Orders.Add(order);
-            await _context.SaveChangesAsync();
+            var entity = _mapper.Map<Order>(orderDto);
 
-            return CreatedAtAction("GetOrder", new { id = order.Id }, order);
+            _context.Orders.Add(entity);
+            await _context.SaveChangesAsync();
+            var createdDto = _mapper.Map<OrderDto>(entity);
+            return CreatedAtAction(nameof(GetOrder), new { id = entity.Id }, createdDto);
         }
 
         /// <summary>
