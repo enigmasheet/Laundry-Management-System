@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text.Json.Serialization;
 
 namespace Laundry.Api.Models
 {
@@ -23,6 +24,7 @@ namespace Laundry.Api.Models
 
         // Navigation properties
         public ICollection<User> Users { get; set; } = new List<User>();
+        [JsonIgnore]  // Add this to prevent infinite recursion
         public ICollection<Service> Services { get; set; } = new List<Service>();
         public ICollection<Order> Orders { get; set; } = new List<Order>();
         public ICollection<VendorInquiry> Inquiries { get; set; } = new List<VendorInquiry>();

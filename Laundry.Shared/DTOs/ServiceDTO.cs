@@ -23,9 +23,6 @@ namespace Laundry.Shared.DTOs
         [Required]
         public int VendorId { get; set; }
 
-        // Optional: Vendor details
-        public VendorDto? Vendor { get; set; }
-
         // Optional: List of reviews
         public IReadOnlyList<ReviewDto>? Reviews { get; set; }
     }

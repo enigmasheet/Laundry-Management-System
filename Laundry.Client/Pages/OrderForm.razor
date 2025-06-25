@@ -30,23 +30,32 @@
         </div>
 
         <div class="col-md-6">
-            <label class="form-label">Vendor ID</label>
-            <InputSelect @bind-Value="order.VendorId" class="form-control" @onchange="VendorChanged">
-                <option value="">-- Select Vendor --</option>
-                @if (vendors == null || vendors.Count == 0)
-                {
-                    <option disabled>Loading vendors...</option>
-                }
-                else
-                {
-                    @foreach (var vendor in vendors)
+            <label class="form-label">Vendor</label>
+            @if (isVendorRole)
+            {
+                <div class="form-control-plaintext fw-semibold">
+                    @SelectedVendorName
+                </div>
+            }
+            else
+            {
+                <InputSelect @bind-Value="order.VendorId" class="form-control" @onchange="VendorChanged">
+                    <option value="">-- Select Vendor --</option>
+                    @if (vendors == null || vendors.Count == 0)
                     {
-                        <option value="@vendor.Id">@vendor.Name</option>
+                        <option disabled>Loading vendors...</option>
                     }
-                }
-            </InputSelect>
-
+                    else
+                    {
+                        @foreach (var vendor in vendors)
+                        {
+                            <option value="@vendor.Id">@vendor.Name</option>
+                        }
+                    }
+                </InputSelect>
+            }
         </div>
+
 
         <div class="col-md-4">
             <label class="form-label">Pickup Date</label>
@@ -127,6 +136,7 @@
 
     private OrderDto order = new();
     private bool isCustomerRole = false;
+    private bool isVendorRole = false;
     private List<VendorDto> vendors = new();
 
     private string CustomerPhoneString
@@ -141,6 +151,9 @@
         var user = authState.User;
 
         isCustomerRole = user.IsInRole("Customer");
+        isVendorRole = user.IsInRole("VendorAdmin") || user.IsInRole("Employee");
+
+        // Auto-fill customer phone
         if (user.Identity?.IsAuthenticated == true && isCustomerRole)
         {
             var phoneClaim = user.FindFirst(c => c.Type == "phone_number" || c.Type == "phone")?.Value;
@@ -149,24 +162,61 @@
                 order.CustomerPhone = phoneClaim;
             }
         }
-        vendors = await VendorService.GetAllVendorsAsync();
-        if (Id.HasValue)
+
+        var vendorId = GetVendorIdFromClaims(user);
+
+        // Fetch vendors list
+        if (isVendorRole && vendorId.HasValue)
         {
-            order.VendorId = Id.Value;
+            var vendor = await VendorService.GetVendorByIdAsync(vendorId.Value);
+            if (vendor != null)
+            {
+                vendors = new List<VendorDto> { vendor };
+                if (!Id.HasValue)
+                {
+                    order.VendorId = vendor.Id;
+                }
+            }
+        }
+        else
+        {
+            vendors = await VendorService.GetAllVendorsAsync();
         }
 
-        InitializeNewOrder();
+        if (Id.HasValue)
+        {
+            order.Id = Id.Value;
+            // TODO: Fetch order details by Id if needed
+        }
+        else
+        {
+            InitializeNewOrder();
+        }
     }
 
-    protected override Task OnParametersSetAsync()
+    private string SelectedVendorName =>
+        vendors.FirstOrDefault(v => v.Id == order.VendorId)?.Name ?? "Unknown Vendor";
+
+    private int? GetVendorIdFromClaims(ClaimsPrincipal user)
     {
-        return base.OnParametersSetAsync();
+        var vendorIdClaim = user.FindFirst(c => c.Type == "vendorId");
+        if (vendorIdClaim != null && int.TryParse(vendorIdClaim.Value, out int vendorId))
+        {
+            return vendorId;
+        }
+        return null;
     }
 
     private void InitializeNewOrder()
     {
+        if (order.Id != 0) return;
+
         order.Id = 1;
-        order.VendorId = order.VendorId == 0 ? 1 : order.VendorId;
+        if (order.VendorId == 0 && vendors.Count == 1)
+        {
+            order.VendorId = vendors[0].Id;
+        }
+
         order.CreatedAt = DateTime.Now;
         order.PickupDate = DateTime.Today;
         order.DeliveryDate = DateTime.Today.AddDays(2);
@@ -182,11 +232,13 @@
                 UnitPrice = 10.0m
             }
         };
+
+        RecalculateTotal();
     }
 
     private Task PickupDateChanged(ChangeEventArgs e)
     {
-        if (DateTime.TryParse(e.Value?.ToString(), out DateTime newPickup))
+        if (DateTime.TryParse(e.Value?.ToString(), out var newPickup))
         {
             order.PickupDate = newPickup;
             order.DeliveryDate = newPickup.AddDays(2);
@@ -227,11 +279,12 @@
     private void HandleValidSubmit()
     {
         Console.WriteLine($"Order submitted. Customer Phone: {order.CustomerPhone}, Total: {order.TotalAmount}");
-        // TODO: Call your API to save order here
+        // TODO: Submit to backend API
     }
+
     private void VendorChanged(ChangeEventArgs e)
     {
-        if (int.TryParse(e.Value?.ToString(), out int selectedVendorId))
+        if (int.TryParse(e.Value?.ToString(), out var selectedVendorId))
         {
             order.VendorId = selectedVendorId;
         }
