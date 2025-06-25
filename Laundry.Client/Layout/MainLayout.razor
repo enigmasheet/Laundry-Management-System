@@ -1,72 +1,79 @@
-﻿@inherits LayoutComponentBase
+﻿@using Laundry.Client.Layout.NavBar
+@inherits LayoutComponentBase
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject HttpClient Http
 @inject IJSRuntime JS
 @inject NavigationManager Navigation
 
-<div class="d-flex flex-column min-vh-100" style="font-family: 'Segoe UI', sans-serif;">
-    <div class="d-flex flex-grow-1">
-        <!-- Sidebar -->
-        <NavMenu />
+<div class="page">
+    <!-- Sidebar: role-based -->
+    @if (userRole == "SuperAdmin")
+    {
+        <SuperAdminNavBar />
+    }
+    else if (userRole == "VendorAdmin" || userRole == "Employee")
+    {
+        <VendorNavBar UserRole="@userRole" />
+    }
+    else if (userRole == "Customer")
+    {
+        <CustomerNavBar />
+    }
+    
 
-        <!-- Main Content -->
-        <main class="flex-grow-1 bg-light d-flex flex-column">
-            <!-- Top bar -->
-            <div class="bg-white d-flex justify-content-between align-items-center px-4 py-3 shadow-sm border-bottom">
-                <h5 class="m-0 text-primary">@PageTitle</h5>
-                <div>
-                    @if (string.IsNullOrEmpty(userEmail))
-                    {
-                        <NavLink class="btn btn-sm btn-outline-primary" href="login">
-                            <i class="bi bi-box-arrow-in-right"></i> Login
-                        </NavLink>
-                    }
-                    else
-                    {
-                        <span class="me-3 text-muted flex">👋 Welcome, <strong>@userEmail</strong></span>
-                        <button class="btn btn-sm btn-outline-danger" @onclick="Logout">
-                            <i class="bi bi-box-arrow-right"></i> Logout
-                        </button>
-                    }
-                </div>
-            </div>
-
-            <!-- Page content -->
-            <article class="p-4 flex-grow-1 overflow-auto">
-                @Body
-            </article>
-
-            <!-- Footer -->
-            <footer class="bg-white text-muted text-center py-2 border-top small">
-                @if (!string.IsNullOrEmpty(userRole))
+    <!-- Main -->
+    <main class="main-content d-flex flex-column flex-grow-1 bg-light min-vh-100">
+        <!-- Top bar -->
+        <div class="top-bar d-flex justify-content-between align-items-center bg-white px-4 py-3 border-bottom shadow-sm">
+            <h5 class="m-0 text-primary">@PageTitle</h5>
+            <div>
+                @if (string.IsNullOrEmpty(userEmail))
                 {
-                    <span>You are logged in as <strong>@userRole</strong>.</span>
+                    <NavLink class="btn btn-sm btn-outline-primary" href="login">
+                        <i class="bi bi-box-arrow-in-right"></i> Login
+                    </NavLink>
                 }
                 else
                 {
-                    <span>Not logged in.</span>
+                    <span class="me-3 text-muted">👋 Welcome, <strong>@userEmail</strong></span>
+                    <button class="btn btn-sm btn-outline-danger" @onclick="Logout">
+                        <i class="bi bi-box-arrow-right"></i> Logout
+                    </button>
                 }
-            </footer>
-        </main>
-    </div>
+            </div>
+        </div>
+
+        <!-- Page content -->
+        <article class="p-4 flex-grow-1 overflow-auto">
+            @Body
+        </article>
+
+        <!-- Footer -->
+        <footer class="footer text-center text-muted py-2 border-top small bg-white">
+            @if (!string.IsNullOrEmpty(userRole))
+            {
+                <span>
+                    You are logged in as <strong>
+                        @(userRole switch
+                        {
+                            "SuperAdmin" => "Super Admin",
+                            "VendorAdmin" => "Vendor Admin",
+                            "Employee" => "Staff",
+                            "Customer" => "Customer",
+                            _ => "User"
+                        })
+                </strong>.
+            </span>
+                        }
+            else
+            {
+                <span>Not logged in.</span>
+            }
+        </footer>
+    </main>
 </div>
 
-<style>
-    main {
-        transition: margin-left 0.3s ease;
-        min-height: 100vh;
-    }
 
-    @@media (min-width: 768px) {
-        main {
-            margin-left: 250px;
-        }
-
-            main.collapsed {
-                margin-left: 70px;
-            }
-    }
-</style>
 
 @code {
     private string? userEmail;
