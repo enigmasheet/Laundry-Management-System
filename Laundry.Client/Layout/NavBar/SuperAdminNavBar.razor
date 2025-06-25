@@ -1,23 +1,23 @@
 ﻿<nav class="nav flex-column role-navbar" aria-label="Super Admin Navigation">
     <h5 class="sidebar-title">Super Admin Panel</h5>
 
-    <NavLink class="nav-link" href="/" title="Dashboard" Match="NavLinkMatch.All">
-        <i class="bi bi-house-door-fill me-2"></i> <span class="link-text">Dashboard</span>
-    </NavLink>
-
-    <NavLink class="nav-link" href="admin/super" title="Manage Users">
-        <i class="bi bi-person-gear me-2"></i> <span class="link-text">Manage Users</span>
-    </NavLink>
-
-    <NavLink class="nav-link" href="reports" title="Reports">
-        <i class="bi bi-bar-chart-fill me-2"></i> <span class="link-text">Reports</span>
-    </NavLink>
-
-    <NavLink class="nav-link" href="settings" title="Settings">
-        <i class="bi bi-gear-fill me-2"></i> <span class="link-text">Settings</span>
-    </NavLink>
-
+    @foreach (var item in MenuItems)
+    {
+        <NavLink class="nav-link" href="@item.Href" title="@item.Title" Match="@item.Match" ActiveClass="active">
+            <i class="bi @item.IconClass me-2"></i>
+            <span class="link-text">@item.LinkText</span>
+        </NavLink>
+    }
 </nav>
-@code{
 
+@code {
+    private record MenuItem(string Href, string Title, string IconClass, string LinkText, NavLinkMatch Match);
+
+    private readonly List<MenuItem> MenuItems = new()
+    {
+        new MenuItem("/", "Dashboard", "bi-house-door-fill", "Dashboard", NavLinkMatch.All),
+        new MenuItem("admin/super", "Manage Users", "bi-person-gear", "Manage Users", NavLinkMatch.Prefix),
+        new MenuItem("reports", "Reports", "bi-bar-chart-fill", "Reports", NavLinkMatch.Prefix),
+        new MenuItem("settings", "Settings", "bi-gear-fill", "Settings", NavLinkMatch.Prefix),
+    };
 }

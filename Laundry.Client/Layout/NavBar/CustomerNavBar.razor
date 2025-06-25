@@ -1,27 +1,23 @@
-﻿<nav class="nav flex-column role-navbar" aria-label="Customer Navigation">
+﻿@code {
+    // List of menu items: href, tooltip title, Bootstrap icon class, display text, NavLink match mode
+    private readonly List<(string href, string title, string iconClass, string linkText, NavLinkMatch match)> menuItems = new()
+    {
+        ("/", "Home", "bi-house-door-fill", "Home", NavLinkMatch.All),
+        ("/order", "Place Order", "bi-cart-plus-fill", "Place Order", NavLinkMatch.Prefix),
+        ("/orders", "Order History", "bi-clock-history", "Order History", NavLinkMatch.Prefix),
+        ("/profile", "My Profile", "bi-person-circle", "My Profile", NavLinkMatch.Prefix),
+    };
+}
+
+<nav class="nav flex-column role-navbar" aria-label="Customer Navigation">
     <h5 class="sidebar-title">Customer Panel</h5>
 
-    <NavLink class="nav-link" href="/" title="Home" Match="NavLinkMatch.All">
-        <i class="bi bi-house-door-fill me-2"></i>
-        <span class="link-text">Home</span>
-    </NavLink>
-
-    <NavLink class="nav-link" href="order" title="Place Order">
-        <i class="bi bi-cart-plus-fill me-2"></i>
-        <span class="link-text">Place Order</span>
-    </NavLink>
-
-    <NavLink class="nav-link" href="orders" title="Order History">
-        <i class="bi bi-clock-history me-2"></i>
-        <span class="link-text">Order History</span>
-    </NavLink>
-
-    <NavLink class="nav-link" href="profile" title="My Profile">
-        <i class="bi bi-person-circle me-2"></i>
-        <span class="link-text">My Profile</span>
-    </NavLink>
+    @foreach (var item in menuItems)
+    {
+        <NavLink class="nav-link" href="@item.href" title="@item.title" Match="@item.match"
+                 ActiveClass="active">
+            <i class="bi @item.iconClass me-2"></i>
+            <span class="link-text">@item.linkText</span>
+        </NavLink>
+    }
 </nav>
-
-@code {
-    // Add customer-specific logic here if needed
-}
