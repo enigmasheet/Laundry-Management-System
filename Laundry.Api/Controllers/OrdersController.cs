@@ -33,8 +33,8 @@ namespace Laundry.Api.Controllers
         public async Task<ActionResult<IEnumerable<OrderDto>>> GetOrders()
         {
             var orders = await _context.Orders.ToListAsync();
-            var orderDto = _mapper.Map<List<OrderDto>>(orders);
-            return Ok(orderDto);
+            var orderDtos = _mapper.Map<List<OrderDto>>(orders);
+            return Ok(orderDtos);
         }
 
         /// <summary>

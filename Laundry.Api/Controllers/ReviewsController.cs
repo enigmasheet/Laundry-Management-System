@@ -1,11 +1,14 @@
-﻿using Laundry.Api.Data;
+﻿using AutoMapper;
+using Laundry.Api.Data;
 using Laundry.Api.Models;
+using Laundry.Shared.DTOs;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Swashbuckle.AspNetCore.Annotations;
 
 using System.Security.Claims;
+using static NuGet.Packaging.PackagingConstants;
 
 namespace Laundry.Api.Controllers
 {
@@ -15,10 +18,12 @@ namespace Laundry.Api.Controllers
     public class ReviewsController : ControllerBase
     {
         private readonly LaundryDbContext _context;
+        private readonly IMapper _mapper;
 
-        public ReviewsController(LaundryDbContext context)
+        public ReviewsController(LaundryDbContext context, IMapper mapper)
         {
             _context = context;
+            _mapper = mapper;
         }
 
         /// <summary>
@@ -27,15 +32,16 @@ namespace Laundry.Api.Controllers
         [HttpGet]
         [SwaggerOperation(Summary = "Get all reviews", Description = "Retrieves a list of all customer reviews with related data.")]
         [SwaggerResponse(200, "List of reviews retrieved successfully.")]
-        public async Task<ActionResult<IEnumerable<Review>>> GetReviews()
+        public async Task<ActionResult<IEnumerable<ReviewDto>>> GetReviews()
         {
             var reviews = await _context.Reviews
                 .Include(r => r.Customer)
                 .Include(r => r.Vendor)
                 .Include(r => r.Service)
                 .ToListAsync();
+            var reviewDtos = _mapper.Map<List<ReviewDto>>(reviews);
 
-            return Ok(reviews);
+            return Ok(reviewDtos);
         }
 
 
@@ -48,14 +54,15 @@ namespace Laundry.Api.Controllers
         [SwaggerResponse(404, "Review not found.")]
         public async Task<ActionResult<Review>> GetReview(int id)
         {
-            var review = await _context.Reviews.FindAsync(id);
+            var reviewAsync = await _context.Reviews.FindAsync(id);
 
-            if (review == null)
+            if (reviewAsync == null)
             {
                 return NotFound();
             }
+            var review = _mapper.Map<List<ReviewDto>>(reviewAsync);
 
-            return review;
+            return Ok(review);
         }
 
         /// <summary>
@@ -66,14 +73,20 @@ namespace Laundry.Api.Controllers
         [SwaggerResponse(204, "Review updated successfully.")]
         [SwaggerResponse(400, "Bad request. The ID does not match.")]
         [SwaggerResponse(404, "Review not found.")]
-        public async Task<IActionResult> PutReview(int id, Review review)
+        public async Task<IActionResult> PutReview(int id, ReviewDto reviewDto)
         {
-            if (id != review.Id)
+            if (id != reviewDto.Id)
             {
                 return BadRequest();
             }
+            var ReviewEntity = await _context.Reviews.FindAsync(id);
+            if (ReviewEntity == null)
+            {
+                return NotFound();
+            }
 
-            _context.Entry(review).State = EntityState.Modified;
+            _mapper.Map(reviewDto, ReviewEntity);
+            _context.Entry(ReviewEntity).State = EntityState.Modified;
 
             try
             {
@@ -100,12 +113,13 @@ namespace Laundry.Api.Controllers
         [HttpPost]
         [SwaggerOperation(Summary = "Create a new review", Description = "Adds a new review to the system.")]
         [SwaggerResponse(201, "Review created successfully.")]
-        public async Task<ActionResult<Review>> PostReview(Review review)
+        public async Task<ActionResult<Review>> PostReview(ReviewDto reviewDto)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
+            var review = _mapper.Map<Review>(reviewDto);
 
             var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (userIdStr == null)
@@ -116,8 +130,9 @@ namespace Laundry.Api.Controllers
 
             _context.Reviews.Add(review);
             await _context.SaveChangesAsync();
+            var createdDto = _mapper.Map<ReviewDto>(review);
 
-            return CreatedAtAction("GetReview", new { id = review.Id }, review);
+            return CreatedAtAction("GetReview", new { id = review.Id }, createdDto);
         }
 
 
