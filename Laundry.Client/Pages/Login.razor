@@ -25,7 +25,7 @@
             </div>
         }
 
-        <EditForm Model="loginModel" OnValidSubmit="HandleLogin">
+        <EditForm Model="@loginModel" OnValidSubmit="HandleLogin">
             <DataAnnotationsValidator />
             <ValidationSummary />
 
@@ -55,16 +55,17 @@
     </div>
 </div>
 
-
 @code {
     private LoginDto loginModel = new();
     private string? ErrorMessage;
-    private bool isSubmitting = false;
     private string? SuccessMessage;
+    private bool isSubmitting = false;
 
     private async Task HandleLogin()
     {
+        // Clear previous messages
         ErrorMessage = null;
+        SuccessMessage = null;
         isSubmitting = true;
 
         try
@@ -77,35 +78,29 @@
 
                 if (result is not null)
                 {
-                    // Optionally store token in local storage
+                    // Store auth token and user info in local storage
                     await JS.InvokeVoidAsync("localStorage.setItem", "authToken", result.Token);
-                    ((ApiAuthenticationStateProvider)AuthenticationStateProvider).NotifyUserAuthentication(result.Token);
-
-                    // Optionally store user info if needed
                     await JS.InvokeVoidAsync("localStorage.setItem", "userEmail", result.User.Email);
                     await JS.InvokeVoidAsync("localStorage.setItem", "userRole", result.User.Role.ToString());
                     if (result.User.VendorId.HasValue)
                     {
                         await JS.InvokeVoidAsync("localStorage.setItem", "vendorID", result.User.VendorId.Value.ToString());
                     }
+
+                    // Notify the app about the authenticated user
+                    if (AuthenticationStateProvider is ApiAuthenticationStateProvider apiAuthProvider)
+                    {
+                        apiAuthProvider.NotifyUserAuthentication(result.Token);
+                    }
+
                     SuccessMessage = $"Welcome back, {result.User.FullName}!";
 
-                    switch (result.User.Role.ToString())
-                    {
-                        case "Admin":
-                            Navigation.NavigateTo("/");
-
-                            //Navigation.NavigateTo("/admin/dashboard");
-                            break;
-                        case "Vendor":
-                            Navigation.NavigateTo("/");
-
-                            //Navigation.NavigateTo("/vendor/home");
-                            break;
-                        default:
-                            Navigation.NavigateTo("/");
-                            break;
-                    }
+                    // Redirect based on user role
+                    NavigateToRoleBasedPage(result.User);
+                }
+                else
+                {
+                    ErrorMessage = "Login failed: Invalid response from server.";
                 }
             }
             else
@@ -121,6 +116,32 @@
         finally
         {
             isSubmitting = false;
+        }
+    }
+
+    private void NavigateToRoleBasedPage(UserDto user)
+    {
+        switch (user.Role.ToString())
+        {
+            case "SuperAdmin":
+                Navigation.NavigateTo("/");
+                break;
+            case "VendorAdmin":
+                Navigation.NavigateTo("/order");
+                break;
+            case "Employee":
+                if (user.VendorId.HasValue)
+                {
+                    Navigation.NavigateTo($"/order/{user.VendorId.Value}");
+                }
+                else
+                {
+                    Navigation.NavigateTo("/order");
+                }
+                break;
+            default:
+                Navigation.NavigateTo("/Home");
+                break;
         }
     }
 }

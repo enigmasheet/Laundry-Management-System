@@ -2,7 +2,7 @@
 
 namespace Laundry.Shared.Enums
 {
-    public enum PickupType
+    public enum PickupTypeEnum
     {
         [Display(Name = "None")]
         None = 0,
@@ -13,10 +13,17 @@ namespace Laundry.Shared.Enums
         [Display(Name = "Drop Off")]
         DropOff = 2,
 
-        [Display(Name = "Home Delivery")]
-        HomeDelivery = 3,
+        
+    }
+    public enum DeliveryTypeEnum
+    {
+        [Display(Name = "None")]
+        None = 0,
 
-        [Display(Name = "Store Pickup")]
-        StorePickup = 4
+        [Display(Name = "Home Delivery")]
+        HomeDelivery = 1,
+
+        [Display(Name = "Store Collect")]
+        StoreCollect = 2
     }
 }

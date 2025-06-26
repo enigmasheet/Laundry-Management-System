@@ -1,45 +1,51 @@
 ﻿@page "/order/{id:int?}"
 @attribute [Authorize(Roles = "SuperAdmin,VendorAdmin,Customer,Employee")]
+
 @using Laundry.Client.Services
+@using Laundry.Shared
 @using Laundry.Shared.DTOs
 @using Laundry.Shared.Enums
-@using Microsoft.AspNetCore.Authorization
 @using Microsoft.AspNetCore.Components.Forms
 @using Microsoft.AspNetCore.Components.Authorization
+
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject IVendorService VendorService
 
-<EditForm Model="@order" OnValidSubmit="HandleValidSubmit">
+<EditForm Model="@order" OnValidSubmit="ShowConfirmModal">
     <DataAnnotationsValidator />
     <ValidationSummary />
 
-    <h3 class="text-center mb-4">@((isCustomerRole) ? "Place Your Order" : "Create or Edit Order")</h3>
+    <h3 class="text-center mb-4">@FormTitle</h3>
 
     <div class="row g-3">
-        <p><strong>Order Code:</strong> @order.OrderCode</p>
+
+        <!-- Customer Phone -->
         <div class="col-md-6">
             <label class="form-label">Customer Phone</label>
             @if (isCustomerRole)
             {
-                <InputText @bind-Value="CustomerPhoneString" class="form-control" readonly />
+                <InputText @bind-Value="order.CustomerPhone" class="form-control" readonly />
             }
             else
             {
-                <InputText @bind-Value="CustomerPhoneString" class="form-control" />
+                <InputText @bind-Value="order.CustomerPhone" class="form-control" />
             }
         </div>
 
+        <!-- Vendor -->
         <div class="col-md-6">
             <label class="form-label">Vendor</label>
-            @if (isVendorRole)
+            @if (VendorIdFromQuery.HasValue && !allowVendorChange)
             {
-                <div class="form-control-plaintext fw-semibold">
-                    @SelectedVendorName
+                <div class="form-control-plaintext fw-semibold">@SelectedVendorName</div>
+                <div class="form-check mt-2">
+                    <input type="checkbox" class="form-check-input" id="changeVendor" @bind="allowVendorChange" />
+                    <label class="form-check-label" for="changeVendor">Change Vendor</label>
                 </div>
             }
             else
             {
-                <InputSelect @bind-Value="order.VendorId" class="form-control" @onchange="VendorChanged">
+                <InputSelect @bind-Value="order.VendorId" class="form-control">
                     <option value="">-- Select Vendor --</option>
                     @if (vendors == null || vendors.Count == 0)
                     {
@@ -53,32 +59,76 @@
                         }
                     }
                 </InputSelect>
+
+                @if (VendorIdFromQuery.HasValue)
+                {
+                    <div class="form-check mt-2">
+                        <input type="checkbox" class="form-check-input" id="resetVendor" @bind="resetVendorChecked" />
+                        <label class="form-check-label" for="resetVendor">Reset to Original Vendor</label>
+                    </div>
+                }
             }
         </div>
 
-
+        <!-- Pickup Type -->
         <div class="col-md-4">
-            <label class="form-label">Pickup Date</label>
-            <InputDate @bind-Value="order.PickupDate" class="form-control" @onchange="PickupDateChanged" />
+            <label class="form-label">Pickup Type</label>
+            <InputSelect @bind-Value="order.PickupType" class="form-control" @onchange="OnPickupTypeChanged">
+                @foreach (PickupTypeEnum pt in Enum.GetValues(typeof(PickupTypeEnum)))
+                {
+                    <option value="@pt">@pt.GetDisplayName()</option>
+                }
+            </InputSelect>
         </div>
 
+        <!-- Pickup Date -->
         <div class="col-md-4">
-            <label class="form-label">Delivery Date</label>
-            <InputDate @bind-Value="order.DeliveryDate" class="form-control" />
+            <label class="form-label">@PickupDateLabel</label>
+            <InputDate @bind-Value="CurrentPickupDate" class="form-control" />
+        </div>
+
+        <!-- Delivery Type -->
+        <div class="col-md-4">
+            <label class="form-label">Delivery Type</label>
+            <InputSelect @bind-Value="order.DeliveryType" class="form-control" @onchange="OnDeliveryTypeChanged">
+                @foreach (DeliveryTypeEnum dt in Enum.GetValues(typeof(DeliveryTypeEnum)))
+                {
+                    <option value="@dt">@dt.GetDisplayName()</option>
+                }
+            </InputSelect>
+        </div>
+
+        <!-- Delivery Date -->
+        <div class="col-md-4">
+            <label class="form-label">@DeliveryDateLabel</label>
+            <InputDate @bind-Value="CurrentDeliveryDate" class="form-control" />
+        </div>
+
+        <!-- Updated At (read-only) -->
+        <div class="col-md-4">
+            <label class="form-label">Updated At</label>
+            <InputDate @bind-Value="order.UpdatedAt" class="form-control" disabled />
         </div>
 
         @if (!isCustomerRole)
         {
+            <!-- Status -->
             <div class="col-md-12">
                 <label class="form-label">Status</label>
                 <InputSelect @bind-Value="order.Status" class="form-control">
-                    @foreach (var status in Enum.GetValues<OrderStatus>())
+                    @foreach (OrderStatus status in Enum.GetValues(typeof(OrderStatus)))
                     {
-                        <option value="@status">@status</option>
+                        <option value="@status">@status.GetDisplayName()</option>
                     }
                 </InputSelect>
             </div>
         }
+
+        <!-- Special Instructions -->
+        <div class="col-md-12">
+            <label class="form-label">Special Instructions</label>
+            <InputTextArea @bind-Value="order.SpecialInstructions" class="form-control" maxlength="500" rows="3" />
+        </div>
     </div>
 
     <h4 class="mt-4">Order Items</h4>
@@ -104,25 +154,26 @@
 
                 <div class="col-md-6 mt-2">
                     <label class="form-label">Total Price</label>
-                    <div class="form-control-plaintext fw-bold">@item.TotalPrice:C</div>
+                    <div class="form-control-plaintext fw-bold">@item.TotalPrice</div>
                 </div>
 
-                
-                    <div class="col-md-6 mt-4 text-end">
-                        <button type="button" class="btn btn-danger" @onclick="() => RemoveOrderItem(item)">Remove</button>
-                    </div>
-                
+                <div class="col-md-6 mt-4 text-end">
+                    <button type="button" class="btn btn-danger" @onclick="() => RemoveOrderItem(item)">Remove</button>
+                </div>
             </div>
         </div>
     }
 
-    
-        <button type="button" class="btn btn-outline-secondary mb-3" @onclick="AddOrderItem">+ Add Item</button>
- 
+    <button type="button" class="btn btn-outline-secondary mb-3" @onclick="AddOrderItem">+ Add Item</button>
 
     <div class="mb-4">
         <strong>Total Amount:</strong>
-        <span class="ms-2 fw-bold text-primary">@order.TotalAmount:C</span>
+        <span class="ms-2 fw-bold text-primary">@order.TotalAmount</span>
+    </div>
+
+    <div class="mb-4">
+        <strong>Final Amount:</strong>
+        <span class="ms-2 fw-bold text-success">@order.FinalAmount</span>
     </div>
 
     <div class="text-center">
@@ -130,19 +181,134 @@
     </div>
 </EditForm>
 
+@if (showConfirmModal)
+{
+    <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);" role="dialog" aria-modal="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+
+                <div class="modal-header">
+                    <h5 class="modal-title">Confirm Order Details</h5>
+                    <button type="button" class="btn-close" @onclick="CloseConfirmModal" aria-label="Close"></button>
+                </div>
+
+                <div class="modal-body">
+                    <p><strong>Order Code:</strong> @order.OrderCode</p>
+                    <p><strong>Customer Phone:</strong> @order.CustomerPhone</p>
+                    <p><strong>Vendor:</strong> @SelectedVendorName</p>
+                    <p><strong>@PickupDateLabel:</strong> @(CurrentPickupDate?.ToShortDateString() ?? "N/A")</p>
+                    <p><strong>@DeliveryDateLabel:</strong> @(CurrentDeliveryDate?.ToShortDateString() ?? "N/A")</p>
+                    <p><strong>Status:</strong> @order.Status.GetDisplayName()</p>
+                    <p><strong>Special Instructions:</strong> @order.SpecialInstructions</p>
+
+                    <h6 class="mt-4">Order Items:</h6>
+                    <table class="table table-bordered">
+                        <thead>
+                            <tr>
+                                <th>Service ID</th>
+                                <th>Quantity (Kg)</th>
+                                <th>Unit Price</th>
+                                <th>Total Price</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in order.OrderItems)
+                            {
+                                <tr>
+                                    <td>@item.ServiceId</td>
+                                    <td>@item.QuantityKg</td>
+                                    <td>@item.UnitPrice</td>
+                                    <td>@item.TotalPrice</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+
+                    <p class="fw-bold"><strong>Total Amount:</strong> @order.TotalAmount</p>
+                </div>
+
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" @onclick="CloseConfirmModal">Cancel</button>
+                    <button class="btn btn-primary" @onclick="SubmitOrder">Confirm</button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+}
+
 @code {
-    [Parameter]
-    public int? Id { get; set; }
+    [Parameter] public int? Id { get; set; }
+    [SupplyParameterFromQuery(Name = "vendorId")] public int? VendorIdFromQuery { get; set; }
 
     private OrderDto order = new();
-    private bool isCustomerRole = false;
-    private bool isVendorRole = false;
     private List<VendorDto> vendors = new();
 
-    private string CustomerPhoneString
+    private bool isCustomerRole;
+    private bool isVendorRole;
+    private bool allowVendorChange;
+    private bool resetVendorChecked;
+    private int? originalVendorId;
+    private bool showConfirmModal;
+
+    private string FormTitle => isCustomerRole ? "Place Your Order" : "Create or Edit Order";
+
+    private string PickupDateLabel => order.PickupType switch
     {
-        get => order.CustomerPhone ?? "";
-        set => order.CustomerPhone = value;
+        PickupTypeEnum.HomePickup => "Pickup Date",
+        PickupTypeEnum.DropOff => "Drop-off Date",
+        _ => "Pickup Date"
+    };
+
+    private DateTime? CurrentPickupDate
+    {
+        get => order.PickupType switch
+        {
+            PickupTypeEnum.HomePickup => order.PickupDate,
+            PickupTypeEnum.DropOff => order.DropOffDate,
+            _ => null
+        };
+        set
+        {
+            switch (order.PickupType)
+            {
+                case PickupTypeEnum.HomePickup:
+                    order.PickupDate = value;
+                    break;
+                case PickupTypeEnum.DropOff:
+                    order.DropOffDate = value;
+                    break;
+            }
+        }
+    }
+
+    private string DeliveryDateLabel => order.DeliveryType switch
+    {
+        DeliveryTypeEnum.HomeDelivery => "Delivery Date",
+        DeliveryTypeEnum.StoreCollect => "Store Collect Date",
+        _ => "Delivery Date"
+    };
+
+    private DateTime? CurrentDeliveryDate
+    {
+        get => order.DeliveryType switch
+        {
+            DeliveryTypeEnum.HomeDelivery => order.DeliveryDate,
+            DeliveryTypeEnum.StoreCollect => order.ExpectedReadyDate,
+            _ => null
+        };
+        set
+        {
+            switch (order.DeliveryType)
+            {
+                case DeliveryTypeEnum.HomeDelivery:
+                    order.DeliveryDate = value;
+                    break;
+                case DeliveryTypeEnum.StoreCollect:
+                    order.ExpectedReadyDate = value;
+                    break;
+            }
+        }
     }
 
     protected override async Task OnInitializedAsync()
@@ -153,40 +319,28 @@
         isCustomerRole = user.IsInRole("Customer");
         isVendorRole = user.IsInRole("VendorAdmin") || user.IsInRole("Employee");
 
-        // Auto-fill customer phone
-        if (user.Identity?.IsAuthenticated == true && isCustomerRole)
+        if (isCustomerRole && user.Identity?.IsAuthenticated == true)
         {
             var phoneClaim = user.FindFirst(c => c.Type == "phone_number" || c.Type == "phone")?.Value;
             if (!string.IsNullOrWhiteSpace(phoneClaim))
-            {
                 order.CustomerPhone = phoneClaim;
-            }
         }
 
-        var vendorId = GetVendorIdFromClaims(user);
-
-        // Fetch vendors list
-        if (isVendorRole && vendorId.HasValue)
+        if (VendorIdFromQuery.HasValue)
         {
-            var vendor = await VendorService.GetVendorByIdAsync(vendorId.Value);
-            if (vendor != null)
-            {
-                vendors = new List<VendorDto> { vendor };
-                if (!Id.HasValue)
-                {
-                    order.VendorId = vendor.Id;
-                }
-            }
+            order.VendorId = VendorIdFromQuery.Value;
+            originalVendorId = VendorIdFromQuery.Value;
         }
+
+        if (isVendorRole)
+            await LoadVendorForUserAsync(user);
         else
-        {
             vendors = await VendorService.GetAllVendorsAsync();
-        }
 
         if (Id.HasValue)
         {
             order.Id = Id.Value;
-            // TODO: Fetch order details by Id if needed
+            // TODO: Load order details by Id here
         }
         else
         {
@@ -194,69 +348,96 @@
         }
     }
 
-    private string SelectedVendorName =>
-        vendors.FirstOrDefault(v => v.Id == order.VendorId)?.Name ?? "Unknown Vendor";
-
-    private int? GetVendorIdFromClaims(ClaimsPrincipal user)
+    private async Task LoadVendorForUserAsync(System.Security.Claims.ClaimsPrincipal user)
     {
-        var vendorIdClaim = user.FindFirst(c => c.Type == "vendorId");
-        if (vendorIdClaim != null && int.TryParse(vendorIdClaim.Value, out int vendorId))
+        var vendorId = GetVendorIdFromClaims(user);
+        if (vendorId.HasValue)
         {
-            return vendorId;
+            var vendor = await VendorService.GetVendorByIdAsync(vendorId.Value);
+            if (vendor is not null)
+            {
+                vendors = new List<VendorDto> { vendor };
+                if (!Id.HasValue)
+                    order.VendorId = vendor.Id;
+            }
         }
-        return null;
     }
+
+    private int? GetVendorIdFromClaims(System.Security.Claims.ClaimsPrincipal user)
+        => int.TryParse(user.FindFirst(c => c.Type == "vendorId")?.Value, out var id) ? id : null;
 
     private void InitializeNewOrder()
     {
         if (order.Id != 0) return;
 
-        order.Id = 1;
-        if (order.VendorId == 0 && vendors.Count == 1)
-        {
-            order.VendorId = vendors[0].Id;
-        }
-
+        order.Id = 1; // Consider generating Id properly later
         order.CreatedAt = DateTime.Now;
-        order.PickupDate = DateTime.Today;
-        order.DeliveryDate = DateTime.Today.AddDays(2);
         order.Status = OrderStatus.Pending;
+
+        if (VendorIdFromQuery.HasValue)
+            order.VendorId = VendorIdFromQuery.Value;
+        else if (order.VendorId == 0 && vendors.Count == 1)
+            order.VendorId = vendors[0].Id;
+
+        order.PickupDate ??= DateTime.Today;
+        order.DropOffDate ??= DateTime.Today.AddDays(1);
+        order.DeliveryDate ??= DateTime.Today.AddDays(2);
+        order.ExpectedReadyDate ??= DateTime.Today.AddDays(3);
+
         order.OrderItems = new List<OrderItemDto>
         {
-            new()
-            {
-                Id = 1,
-                OrderId = 1,
-                ServiceId = 101,
-                QuantityKg = 1.0,
-                UnitPrice = 10.0m
-            }
+            new() { Id = 1, OrderId = order.Id, ServiceId = 101, QuantityKg = 1.0, UnitPrice = 10.0m }
         };
 
         RecalculateTotal();
     }
 
-    private Task PickupDateChanged(ChangeEventArgs e)
+    private void OnPickupTypeChanged(ChangeEventArgs e)
     {
-        if (DateTime.TryParse(e.Value?.ToString(), out var newPickup))
+        if (Enum.TryParse<PickupTypeEnum>(e.Value?.ToString(), out var selectedType))
         {
-            order.PickupDate = newPickup;
-            order.DeliveryDate = newPickup.AddDays(2);
+            order.PickupType = selectedType;
+
+            switch (selectedType)
+            {
+                case PickupTypeEnum.HomePickup when !order.PickupDate.HasValue:
+                    order.PickupDate = DateTime.Today;
+                    break;
+                case PickupTypeEnum.DropOff when !order.DropOffDate.HasValue:
+                    order.DropOffDate = DateTime.Today.AddDays(1);
+                    break;
+            }
         }
-        return Task.CompletedTask;
+    }
+
+    private void OnDeliveryTypeChanged(ChangeEventArgs e)
+    {
+        if (Enum.TryParse<DeliveryTypeEnum>(e.Value?.ToString(), out var selectedType))
+        {
+            order.DeliveryType = selectedType;
+
+            switch (selectedType)
+            {
+                case DeliveryTypeEnum.HomeDelivery when !order.DeliveryDate.HasValue:
+                    order.DeliveryDate = DateTime.Today.AddDays(2);
+                    break;
+                case DeliveryTypeEnum.StoreCollect when !order.ExpectedReadyDate.HasValue:
+                    order.ExpectedReadyDate = DateTime.Today.AddDays(3);
+                    break;
+            }
+        }
     }
 
     private void AddOrderItem()
     {
-        var newItem = new OrderItemDto
+        order.OrderItems.Add(new OrderItemDto
         {
             Id = order.OrderItems.Count + 1,
             OrderId = order.Id,
             ServiceId = 0,
             QuantityKg = 1.0,
             UnitPrice = 0.0m
-        };
-        order.OrderItems.Add(newItem);
+        });
         RecalculateTotal();
     }
 
@@ -268,25 +449,50 @@
 
     private void RecalculateTotal()
     {
-        foreach (var i in order.OrderItems)
-        {
-            i.TotalPrice = (decimal)i.QuantityKg * i.UnitPrice;
-        }
+        foreach (var item in order.OrderItems)
+            item.TotalPrice = (decimal)item.QuantityKg * item.UnitPrice;
+
         order.TotalAmount = order.OrderItems.Sum(i => i.TotalPrice);
+
+        // Update FinalAmount here if needed
+
         StateHasChanged();
     }
 
-    private void HandleValidSubmit()
+    private void ShowConfirmModal() => showConfirmModal = true;
+
+    private void CloseConfirmModal() => showConfirmModal = false;
+
+    private void SubmitOrder()
     {
-        Console.WriteLine($"Order submitted. Customer Phone: {order.CustomerPhone}, Total: {order.TotalAmount}");
-        // TODO: Submit to backend API
+        showConfirmModal = false;
+        order.UpdatedAt = DateTime.UtcNow;
+
+        // TODO: Call API to save order
+
+        Console.WriteLine($"Order submitted. Customer Phone: {order.CustomerPhone}, Total: {order.TotalAmount:C}");
+        // TODO: Navigate or show success notification
     }
 
-    private void VendorChanged(ChangeEventArgs e)
+    private string SelectedVendorName => vendors.FirstOrDefault(v => v.Id == order.VendorId)?.Name ?? "Unknown Vendor";
+
+    // Reset vendor checkbox binding using property with side effect
+    private bool ResetVendorChecked
     {
-        if (int.TryParse(e.Value?.ToString(), out var selectedVendorId))
+        get => resetVendorChecked;
+        set
         {
-            order.VendorId = selectedVendorId;
+            if (value && originalVendorId.HasValue)
+            {
+                order.VendorId = originalVendorId.Value;
+                allowVendorChange = false;
+                resetVendorChecked = false; // reset checkbox
+                StateHasChanged();
+            }
+            else
+            {
+                resetVendorChecked = value;
+            }
         }
     }
 }

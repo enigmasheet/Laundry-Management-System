@@ -17,6 +17,9 @@ namespace Laundry.Shared.Enums
         BankTransfer = 3,
 
         [Display(Name = "QR Code")]
-        QRCode = 4
+        QRCode = 4,
+
+        [Display(Name = "Not Specified")]
+        NotSpecified = 4
     }
 }
