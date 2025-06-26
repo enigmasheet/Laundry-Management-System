@@ -5,25 +5,25 @@ namespace Laundry.Shared.DTOs
 {
     public class ServiceDto
     {
-        [Required]
+        [Required(ErrorMessage = "Service ID is required.")]
         public int Id { get; set; }
 
-        [Required]
-        [StringLength(100, ErrorMessage = "Name length can't be more than 100 characters.")]
-        public string Name { get; set; } = null!;
+        [Required(ErrorMessage = "Service name is required.")]
+        [StringLength(100, ErrorMessage = "Name cannot exceed 100 characters.")]
+        public string Name { get; set; } = string.Empty;
 
-        [Required]
-        [StringLength(1000, ErrorMessage = "Description length can't be more than 1000 characters.")]
-        public string Description { get; set; } = null!;
+        [Required(ErrorMessage = "Description is required.")]
+        [StringLength(1000, ErrorMessage = "Description cannot exceed 1000 characters.")]
+        public string Description { get; set; } = string.Empty;
 
-        [Required]
+        [Required(ErrorMessage = "Price per kg is required.")]
         [Range(0, double.MaxValue, ErrorMessage = "Price per kg must be non-negative.")]
         public decimal PricePerKg { get; set; }
 
-        [Required]
+        [Required(ErrorMessage = "Vendor ID is required.")]
         public int VendorId { get; set; }
 
-        // Optional: List of reviews
+        // Optional: Associated customer reviews
         public IReadOnlyList<ReviewDto>? Reviews { get; set; }
     }
 }

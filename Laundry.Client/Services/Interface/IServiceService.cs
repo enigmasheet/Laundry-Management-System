@@ -2,8 +2,7 @@
 
 namespace Laundry.Client.Services.Interface
 {
-    public interface IVendorService: IBase<VendorDto, int>
+    public interface IServiceService: IBase<ServiceDto, int>
     {
-
     }
 }

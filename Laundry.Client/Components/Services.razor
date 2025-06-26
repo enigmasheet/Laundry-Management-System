@@ -1,0 +1,135 @@
+﻿@page "/services"
+@inject IServiceService ServiceService
+@using Laundry.Shared.DTOs
+@using System.Net.Http.Json
+
+<h3 class="mb-4">Manage Services</h3>
+
+<!-- Add/Edit Form -->
+<EditForm Model="@editingService" OnValidSubmit="@SaveService">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="row g-3 mb-3">
+        <div class="col-md-6">
+            <label>Name</label>
+            <InputText @bind-Value="editingService.Name" class="form-control" />
+        </div>
+        <div class="col-md-6">
+            <label>Vendor ID</label>
+            <InputNumber @bind-Value="editingService.VendorId" class="form-control" />
+        </div>
+
+        <div class="col-md-6">
+            <label>Price per Kg</label>
+            <InputNumber @bind-Value="editingService.PricePerKg" class="form-control" />
+        </div>
+
+        <div class="col-md-12">
+            <label>Description</label>
+            <InputTextArea @bind-Value="editingService.Description" class="form-control" rows="3" />
+        </div>
+
+        <div class="col-md-12 text-end">
+            <button type="submit" class="btn btn-primary me-2">@((editingService.Id == 0) ? "Add" : "Update")</button>
+            <button type="button" class="btn btn-secondary" @onclick="ResetForm">Cancel</button>
+        </div>
+    </div>
+</EditForm>
+
+<hr />
+
+<!-- List -->
+<table class="table table-bordered mt-3">
+    <thead class="table-light">
+        <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Vendor ID</th>
+            <th>Price/Kg</th>
+            <th>Description</th>
+            <th class="text-end">Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (services?.Count > 0)
+        {
+            @foreach (var service in services)
+            {
+                <tr>
+                    <td>@service.Id</td>
+                    <td>@service.Name</td>
+                    <td>@service.VendorId</td>
+                    <td>@service.PricePerKg</td>
+                    <td>@service.Description</td>
+                    <td class="text-end">
+                        <button class="btn btn-sm btn-warning me-2" @onclick="() => EditService(service)">Edit</button>
+                        <button class="btn btn-sm btn-danger" @onclick="() => DeleteService(service.Id)">Delete</button>
+                    </td>
+                </tr>
+            }
+        }
+        else
+        {
+            <tr>
+                <td colspan="6" class="text-center">No services available.</td>
+            </tr>
+        }
+    </tbody>
+</table>
+@code {
+    private List<ServiceDto> services = new();
+    private ServiceDto editingService = new();
+    private readonly IJSRuntime jS;
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadServices();
+    }
+
+    private async Task LoadServices()
+    {
+        services = await ServiceService.GetAllAsync();
+    }
+
+    private void EditService(ServiceDto service)
+    {
+        editingService = new ServiceDto
+        {
+            Id = service.Id,
+            Name = service.Name,
+            Description = service.Description,
+            PricePerKg = service.PricePerKg,
+            VendorId = service.VendorId
+        };
+    }
+
+    private async Task SaveService()
+    {
+        if (editingService.Id == 0)
+        {
+            await ServiceService.CreateAsync(editingService);
+        }
+        else
+        {
+            await ServiceService.UpdateAsync(editingService.Id, editingService);
+        }
+
+        await LoadServices();
+        ResetForm();
+    }
+
+    private async Task DeleteService(int id)
+    {
+        var confirmed = await jS.InvokeAsync<bool>("confirm", $"Are you sure you want to delete service {id}?");
+        if (confirmed)
+        {
+            await ServiceService.DeleteAsync(id);
+            await LoadServices();
+        }
+    }
+
+    private void ResetForm()
+    {
+        editingService = new ServiceDto();
+    }
+}

@@ -19,6 +19,7 @@ namespace Laundry.Client
             // Register your custom AuthenticationStateProvider once
             builder.Services.AddScoped<AuthenticationStateProvider, ApiAuthenticationStateProvider>();
             builder.Services.AddScoped<IVendorService, VendorService>();
+            builder.Services.AddScoped<IServiceService, ServiceService>();
 
             // Add Blazor authorization services
             builder.Services.AddAuthorizationCore();

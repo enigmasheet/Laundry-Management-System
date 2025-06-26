@@ -331,7 +331,7 @@
         if (isVendorRole)
             await LoadVendorForUserAsync(user);
         else
-            vendors = await VendorService.GetAllVendorsAsync();
+            vendors = await VendorService.GetAllAsync();
 
         if (Id.HasValue)
         {
@@ -349,7 +349,7 @@
         var vendorId = GetVendorIdFromClaims(user);
         if (vendorId.HasValue)
         {
-            var vendor = await VendorService.GetVendorByIdAsync(vendorId.Value);
+            var vendor = await VendorService.GetByIdAsync(vendorId.Value);
             if (vendor is not null)
             {
                 vendors = new List<VendorDto> { vendor };

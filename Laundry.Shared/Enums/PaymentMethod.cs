@@ -20,6 +20,6 @@ namespace Laundry.Shared.Enums
         QRCode = 4,
 
         [Display(Name = "Not Specified")]
-        NotSpecified = 4
+        NotSpecified = 5
     }
 }

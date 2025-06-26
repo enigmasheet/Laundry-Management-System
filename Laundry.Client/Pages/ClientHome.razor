@@ -32,6 +32,6 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        vendors = await VendorService.GetAllVendorsAsync();
+        vendors = await VendorService.GetAllAsync();
     }
 }

@@ -62,7 +62,7 @@ namespace Laundry.Shared.DTOs
 
         [Required]
         [MinLength(1, ErrorMessage = "Order must contain at least one item.")]
-        public List<OrderItemDto> OrderItems { get; set; } = new List<OrderItemDto>();
+        public List<OrderItemDto> OrderItems { get; set; } = [];
 
         [MaxLength(500)]
         public string? SpecialInstructions { get; set; }
@@ -94,7 +94,7 @@ namespace Laundry.Shared.DTOs
                 {
                     yield return new ValidationResult(
                         "Drop-off Date is required for Drop Off pickup type.",
-                        new[] { nameof(DropOffDate) });
+                        [nameof(DropOffDate)]);
                 }
             }
             else
@@ -103,7 +103,7 @@ namespace Laundry.Shared.DTOs
                 {
                     yield return new ValidationResult(
                         "Pickup Date is required for the selected Pickup Type.",
-                        new[] { nameof(PickupDate) });
+                        [nameof(PickupDate)]);
                 }
             }
 
@@ -112,7 +112,7 @@ namespace Laundry.Shared.DTOs
             {
                 yield return new ValidationResult(
                     "Delivery Date is required for the selected Delivery Type.",
-                    new[] { nameof(DeliveryDate) });
+                    [nameof(DeliveryDate)]);
             }
 
             // Date order validations (if all relevant dates present)
@@ -120,28 +120,28 @@ namespace Laundry.Shared.DTOs
             {
                 yield return new ValidationResult(
                     "Drop-off Date cannot be earlier than Pickup Date.",
-                    new[] { nameof(DropOffDate), nameof(PickupDate) });
+                    [nameof(DropOffDate), nameof(PickupDate)]);
             }
 
             if (PickupDate.HasValue && DeliveryDate.HasValue && DeliveryDate < PickupDate)
             {
                 yield return new ValidationResult(
                     "Delivery Date cannot be earlier than Pickup Date.",
-                    new[] { nameof(DeliveryDate), nameof(PickupDate) });
+                    [nameof(DeliveryDate), nameof(PickupDate)]);
             }
 
             if (DropOffDate.HasValue && DeliveryDate.HasValue && DeliveryDate < DropOffDate)
             {
                 yield return new ValidationResult(
                     "Delivery Date cannot be earlier than Drop-off Date.",
-                    new[] { nameof(DeliveryDate), nameof(DropOffDate) });
+                    [nameof(DeliveryDate), nameof(DropOffDate)]);
             }
 
             if (IsCancelled && string.IsNullOrWhiteSpace(CancelReason))
             {
                 yield return new ValidationResult(
                     "Cancel reason must be provided if the order is cancelled.",
-                    new[] { nameof(CancelReason) });
+                    [nameof(CancelReason)]);
             }
         }
     }
