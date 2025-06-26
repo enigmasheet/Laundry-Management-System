@@ -17,10 +17,10 @@
 
     <h3 class="text-center mb-4">@FormTitle</h3>
 
-    <div class="row g-3">
+    <div class="row gx-3 gy-2 align-items-center">
 
         <!-- Customer Phone -->
-        <div class="col-md-6">
+        <div class="col-sm-6">
             <label class="form-label">Customer Phone</label>
             @if (isCustomerRole)
             {
@@ -33,12 +33,12 @@
         </div>
 
         <!-- Vendor -->
-        <div class="col-md-6">
+        <div class="col-sm-6">
             <label class="form-label">Vendor</label>
             @if (VendorIdFromQuery.HasValue && !allowVendorChange)
             {
                 <div class="form-control-plaintext fw-semibold">@SelectedVendorName</div>
-                <div class="form-check mt-2">
+                <div class="form-check mt-1">
                     <input type="checkbox" class="form-check-input" id="changeVendor" @bind="allowVendorChange" />
                     <label class="form-check-label" for="changeVendor">Change Vendor</label>
                 </div>
@@ -62,7 +62,7 @@
 
                 @if (VendorIdFromQuery.HasValue)
                 {
-                    <div class="form-check mt-2">
+                    <div class="form-check mt-1">
                         <input type="checkbox" class="form-check-input" id="resetVendor" @bind="resetVendorChecked" />
                         <label class="form-check-label" for="resetVendor">Reset to Original Vendor</label>
                     </div>
@@ -71,7 +71,7 @@
         </div>
 
         <!-- Pickup Type -->
-        <div class="col-md-4">
+        <div class="col-sm-4">
             <label class="form-label">Pickup Type</label>
             <InputSelect @bind-Value="order.PickupType" class="form-control" @onchange="OnPickupTypeChanged">
                 @foreach (PickupTypeEnum pt in Enum.GetValues(typeof(PickupTypeEnum)))
@@ -82,13 +82,13 @@
         </div>
 
         <!-- Pickup Date -->
-        <div class="col-md-4">
+        <div class="col-sm-4">
             <label class="form-label">@PickupDateLabel</label>
             <InputDate @bind-Value="CurrentPickupDate" class="form-control" />
         </div>
-
+        
         <!-- Delivery Type -->
-        <div class="col-md-4">
+        <div class="col-sm-4">
             <label class="form-label">Delivery Type</label>
             <InputSelect @bind-Value="order.DeliveryType" class="form-control" @onchange="OnDeliveryTypeChanged">
                 @foreach (DeliveryTypeEnum dt in Enum.GetValues(typeof(DeliveryTypeEnum)))
@@ -99,21 +99,15 @@
         </div>
 
         <!-- Delivery Date -->
-        <div class="col-md-4">
+        <div class="col-sm-4">
             <label class="form-label">@DeliveryDateLabel</label>
             <InputDate @bind-Value="CurrentDeliveryDate" class="form-control" />
-        </div>
-
-        <!-- Updated At (read-only) -->
-        <div class="col-md-4">
-            <label class="form-label">Updated At</label>
-            <InputDate @bind-Value="order.UpdatedAt" class="form-control" disabled />
         </div>
 
         @if (!isCustomerRole)
         {
             <!-- Status -->
-            <div class="col-md-12">
+            <div class="col-12">
                 <label class="form-label">Status</label>
                 <InputSelect @bind-Value="order.Status" class="form-control">
                     @foreach (OrderStatus status in Enum.GetValues(typeof(OrderStatus)))
@@ -125,55 +119,56 @@
         }
 
         <!-- Special Instructions -->
-        <div class="col-md-12">
+        <div class="col-12">
             <label class="form-label">Special Instructions</label>
             <InputTextArea @bind-Value="order.SpecialInstructions" class="form-control" maxlength="500" rows="3" />
         </div>
     </div>
 
-    <h4 class="mt-4">Order Items</h4>
+    <h4 class="mt-4 mb-3">Order Items</h4>
 
     @foreach (var item in order.OrderItems)
     {
         <div class="border p-3 mb-3 rounded shadow-sm bg-light">
-            <div class="row g-3">
-                <div class="col-md-4">
+            <div class="row gx-3 gy-2 align-items-end">
+                <div class="col-sm-3 col-6">
                     <label class="form-label">Service ID</label>
                     <InputNumber @bind-Value="item.ServiceId" class="form-control" />
                 </div>
 
-                <div class="col-md-4">
+                <div class="col-sm-3 col-6">
                     <label class="form-label">Quantity (Kg)</label>
                     <InputNumber @bind-Value="item.QuantityKg" class="form-control" @oninput="RecalculateTotal" />
                 </div>
 
-                <div class="col-md-4">
+                <div class="col-sm-3 col-6">
                     <label class="form-label">Unit Price</label>
                     <InputNumber @bind-Value="item.UnitPrice" class="form-control" @oninput="RecalculateTotal" />
                 </div>
 
-                <div class="col-md-6 mt-2">
+                <div class="col-sm-2 col-6 text-center">
                     <label class="form-label">Total Price</label>
                     <div class="form-control-plaintext fw-bold">@item.TotalPrice</div>
                 </div>
 
-                <div class="col-md-6 mt-4 text-end">
-                    <button type="button" class="btn btn-danger" @onclick="() => RemoveOrderItem(item)">Remove</button>
+                <div class="col-12 text-end">
+                    <button type="button" class="btn btn-danger btn-sm mt-1" @onclick="() => RemoveOrderItem(item)">Remove</button>
                 </div>
             </div>
         </div>
     }
 
-    <button type="button" class="btn btn-outline-secondary mb-3" @onclick="AddOrderItem">+ Add Item</button>
+    <button type="button" class="btn btn-outline-secondary mb-4" @onclick="AddOrderItem">+ Add Item</button>
 
-    <div class="mb-4">
-        <strong>Total Amount:</strong>
-        <span class="ms-2 fw-bold text-primary">@order.TotalAmount</span>
-    </div>
-
-    <div class="mb-4">
-        <strong>Final Amount:</strong>
-        <span class="ms-2 fw-bold text-success">@order.FinalAmount</span>
+    <div class="d-flex justify-content-between mb-4 flex-wrap gap-3">
+        <div>
+            <strong>Total Amount:</strong>
+            <span class="ms-2 fw-bold text-primary">@order.TotalAmount</span>
+        </div>
+        <div>
+            <strong>Final Amount:</strong>
+            <span class="ms-2 fw-bold text-success">@order.FinalAmount</span>
+        </div>
     </div>
 
     <div class="text-center">
@@ -236,6 +231,7 @@
         </div>
     </div>
 }
+
 
 @code {
     [Parameter] public int? Id { get; set; }

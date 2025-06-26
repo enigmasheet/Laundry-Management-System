@@ -35,7 +35,7 @@ namespace Laundry.Shared.DTOs
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
         [Display(Name = "Updated At")]
-        public DateTime? UpdatedAt { get; set; }
+        public DateTime? UpdatedAt { get; set; } = DateTime.UtcNow;
 
         [DataType(DataType.DateTime)]
         [Display(Name = "Pickup Date")]

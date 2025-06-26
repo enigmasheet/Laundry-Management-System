@@ -1,61 +1,142 @@
 ﻿/* OrderForm.razor.css */
 
+/* Container styling */
 form {
     max-width: 900px;
-    margin: auto;
+    margin: 2rem auto;
     padding: 2rem;
-    background-color: #f8f9fa;
+    background-color: #fefefe;
     border-radius: 12px;
-    box-shadow: 0 0 12px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.1);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
 /* Headings */
 h3, h4 {
-    margin-bottom: 1.5rem;
-    font-weight: 600;
-    color: #343a40;
+    color: #212529;
+    font-weight: 700;
 }
 
-/* Label styles */
+/* Labels */
 label {
-    font-weight: 500;
-    margin-bottom: 0.25rem;
-    display: block;
+    font-weight: 600;
+    margin-bottom: 0.3rem;
+    color: #495057;
 }
 
-/* Form control tweaks */
+/* Form Controls */
 .form-control {
-    border-radius: 6px;
+    border-radius: 8px;
+    border: 1.5px solid #ced4da;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
 }
+
+    .form-control:focus {
+        border-color: #0d6efd;
+        box-shadow: 0 0 8px rgba(13, 110, 253, 0.25);
+        outline: none;
+    }
+
+    /* Readonly input styling */
+    .form-control[readonly] {
+        background-color: #e9ecef;
+        color: #6c757d;
+    }
+
+/* Checkbox labels */
+.form-check-label {
+    font-weight: 500;
+    cursor: pointer;
+}
+
+/* Buttons */
+button {
+    min-width: 120px;
+    border-radius: 6px;
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+    button.btn-primary {
+        background-color: #0d6efd;
+        border-color: #0d6efd;
+    }
+
+        button.btn-primary:hover {
+            background-color: #0b5ed7;
+            border-color: #0a58ca;
+            box-shadow: 0 0 10px rgba(11, 94, 215, 0.6);
+        }
+
+    button.btn-outline-secondary {
+        color: #6c757d;
+        border-color: #6c757d;
+    }
+
+        button.btn-outline-secondary:hover {
+            background-color: #6c757d;
+            color: #fff;
+        }
+
+    /* Danger button for remove */
+    button.btn-danger {
+        background-color: #dc3545;
+        border-color: #dc3545;
+    }
+
+        button.btn-danger:hover {
+            background-color: #bb2d3b;
+            border-color: #b02a37;
+        }
+
+        /* Smaller remove button */
+        button.btn-danger.btn-sm {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.85rem;
+        }
 
 /* Order items container */
-.border.p-2.mb-2 {
-    background-color: #ffffff;
+.border.p-3 {
+    background-color: #f8f9fa;
+    border-color: #dee2e6 !important;
     border-radius: 8px;
 }
 
-/* Button styling */
-button {
-    min-width: 120px;
+/* Modal Styling */
+.modal-content {
+    border-radius: 12px;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
 }
 
-    button.btn-danger {
-        margin-top: 0.5rem;
-    }
+.modal-header {
+    border-bottom: 1px solid #dee2e6;
+    padding: 1rem 1.5rem;
+}
 
-.btn-secondary.mb-3 {
+.modal-title {
+    font-weight: 700;
+    color: #212529;
+}
+
+.modal-body p,
+.modal-body strong {
+    font-size: 1rem;
+    color: #343a40;
+}
+
+.modal-body table {
     margin-top: 1rem;
 }
 
-/* Total amount */
-div.mb-3 strong {
-    font-size: 1.1rem;
+.modal-footer {
+    border-top: 1px solid #dee2e6;
+    padding: 1rem 1.5rem;
 }
 
-/* Responsive layout */
+/* Responsive tweaks */
 @media (max-width: 576px) {
     form {
         padding: 1rem;
+        margin: 1rem;
     }
 
     .form-control {
@@ -64,5 +145,6 @@ div.mb-3 strong {
 
     button {
         font-size: 0.9rem;
+        min-width: 100px;
     }
 }
