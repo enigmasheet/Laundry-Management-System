@@ -10,11 +10,15 @@
 }
 else
 {
-    <div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg space-y-4">
+    <div class="p-6 space-y-2">
         <p><strong>Name:</strong> @myProfile.FullName</p>
         <p><strong>Email:</strong> @myProfile.Email</p>
-        <!-- Add more fields if needed -->
+        <p><strong>Phone:</strong> @myProfile.Phone</p>
+        <p><strong>Address:</strong> @myProfile.Address</p>
+        <p><strong>Role:</strong> @myProfile.Role</p>
+        <p><strong>Status:</strong> @(myProfile.IsActive ? "Active" : "Inactive")</p>
     </div>
+
 }
 
 @code {
