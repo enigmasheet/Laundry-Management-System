@@ -10,7 +10,6 @@ using Swashbuckle.AspNetCore.Annotations;
 
 namespace Laundry.Api.Controllers
 {
-    [Authorize]
     [Route("api/[controller]")]
     [ApiController]
     public class VendorsController : ControllerBase
@@ -66,6 +65,7 @@ namespace Laundry.Api.Controllers
         /// <summary>
         /// Update an existing vendor.
         /// </summary>
+        [Authorize]
         [HttpPut("{id}")]
         [SwaggerOperation(Summary = "Update a vendor", Description = "Updates the vendor details for the specified ID.")]
         [SwaggerResponse(204, "Vendor updated successfully.")]
@@ -102,6 +102,7 @@ namespace Laundry.Api.Controllers
         /// <summary>
         /// Create a new vendor.
         /// </summary>
+        [Authorize]
         [HttpPost]
         [SwaggerOperation(Summary = "Create a new vendor", Description = "Adds a new vendor to the system.")]
         [SwaggerResponse(201, "Vendor created successfully.")]

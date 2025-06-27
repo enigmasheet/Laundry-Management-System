@@ -3,8 +3,7 @@
         <Found Context="routeData">
             <AuthorizeRouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)">
                 <NotAuthorized>
-                    <h3>Access denied</h3>
-                    <p>You are not authorized to access this resource.</p>
+                    <RedirectToLogin />
                 </NotAuthorized>
                 <Authorizing>
                     <p>Authorization in progress...</p>
@@ -19,6 +18,5 @@
                 <NavLink href="/" class="btn btn-link">Return Home</NavLink>
             </LayoutView>
         </NotFound>
-
     </Router>
 </CascadingAuthenticationState>
