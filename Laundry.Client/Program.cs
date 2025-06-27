@@ -20,6 +20,7 @@ namespace Laundry.Client
             builder.Services.AddScoped<AuthenticationStateProvider, ApiAuthenticationStateProvider>();
             builder.Services.AddScoped<IVendorService, VendorService>();
             builder.Services.AddScoped<IServiceService, ServiceService>();
+            builder.Services.AddScoped<IUserService, UserService>();
 
             // Add Blazor authorization services
             builder.Services.AddAuthorizationCore();
