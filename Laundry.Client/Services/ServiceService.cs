@@ -58,5 +58,10 @@ namespace Laundry.Client.Services
             var response = await _http.DeleteAsync($"api/services/{id}");
             response.EnsureSuccessStatusCode();
         }
+
+        public Task<ServiceDto?> GetAllByIDAsync(int id)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

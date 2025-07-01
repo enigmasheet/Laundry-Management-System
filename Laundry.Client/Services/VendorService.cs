@@ -26,7 +26,10 @@ namespace Laundry.Client.Services
                 return [];
             }
         }
-
+        public Task<VendorDto?> GetAllByIDAsync(int id)
+        {
+            throw new NotImplementedException();
+        }
         public async Task<VendorDto?> GetByIdAsync(int id)
         {
             try
@@ -58,5 +61,7 @@ namespace Laundry.Client.Services
             var response = await _http.DeleteAsync($"api/vendors/{id}");
             response.EnsureSuccessStatusCode();
         }
+
+       
     }
 }

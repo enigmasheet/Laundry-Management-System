@@ -19,6 +19,8 @@ namespace Laundry.Api.Models
         [Range(0.01, double.MaxValue)]
         public double QuantityKg { get; set; }
 
+        public string? UnitType { get; set; } // e.g., "kg", "lbs"
+
         [Column(TypeName = "decimal(18,2)")]
         [Range(0, double.MaxValue)]
         public decimal UnitPrice { get; set; }

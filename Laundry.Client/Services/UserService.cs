@@ -13,6 +13,11 @@ namespace Laundry.Client.Services
             _http = http;
         }
 
+        public Task<UserDto?> GetAllByIDAsync(int id)
+        {
+            throw new NotImplementedException();
+        }
+
         public async Task<UserDto> GetMyProfile()
         {
             try

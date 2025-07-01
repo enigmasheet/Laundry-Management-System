@@ -11,6 +11,7 @@ namespace Laundry.Client.Services
     {
         Task<List<TDto>> GetAllAsync();
         Task<TDto?> GetByIdAsync(TKey id);
+        Task<TDto?> GetAllByIDAsync(TKey id);
         Task<TDto> CreateAsync(TDto dto);
         Task UpdateAsync(TKey id, TDto dto);
         Task DeleteAsync(TKey id);
