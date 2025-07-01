@@ -7,6 +7,8 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using Laundry.Shared.DTOs;
+using Laundry.Api.Models;
+using System.Threading.Tasks;
 
 namespace Laundry.Api.Controllers
 {
@@ -42,7 +44,6 @@ namespace Laundry.Api.Controllers
                 new Claim(ClaimTypes.NameIdentifier, user.UserId.ToString()),
                 new Claim(ClaimTypes.Name, user.FullName ?? string.Empty),
                 new Claim(ClaimTypes.Email, user.Email ?? string.Empty),
-                new Claim(ClaimTypes.Role, user.Role ?? string.Empty),
                 new Claim(ClaimTypes.Role, user.Role ?? string.Empty),
                 new Claim("isActive", user.IsActive.ToString())
             };
@@ -94,6 +95,100 @@ namespace Laundry.Api.Controllers
                 }
             });
         }
+
+        [HttpPost("register")]
+        public async Task<IActionResult> Register([FromForm] RegisterDto registerDto)
+        {
+            if(!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+            var normalizedEmail = registerDto.Email.Trim().ToLower();
+
+            var existingUser = await _context.Users
+                    .FirstOrDefaultAsync(u => u.Email.ToLower() == normalizedEmail 
+                    || u.Phone == registerDto.PhoneNumber);
+
+
+            if (existingUser != null)
+            {
+                if (existingUser.Email.ToLower() == registerDto.Email.ToLower())
+                    return Conflict("A user with this email already exists.");
+                else if (existingUser.Phone == registerDto.PhoneNumber)
+                    return Conflict("A user with this phone number already exists.");
+            }
+
+            var user = new User
+            {
+                Email = registerDto.Email,
+                FullName = registerDto.FullName,
+                Phone = registerDto.PhoneNumber,
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword(registerDto.Password),
+                Role = "User", // Default role, can be changed later
+                IsActive = true // Default active status
+
+            };
+
+            _context.Users.Add(user);
+            await _context.SaveChangesAsync(); 
+            var claims = new List<Claim>
+            {
+                new Claim(ClaimTypes.NameIdentifier, user.UserId.ToString()),
+                new Claim(ClaimTypes.Name, user.FullName ?? string.Empty),
+                new Claim(ClaimTypes.Email, user.Email ?? string.Empty),
+                new Claim(ClaimTypes.Role, user.Role ?? string.Empty),
+                new Claim("isActive", user.IsActive.ToString())
+            };
+
+            if (!string.IsNullOrEmpty(user.Phone))
+                claims.Add(new Claim("phone", user.Phone));
+            if (!string.IsNullOrEmpty(user.Address))
+                claims.Add(new Claim("address", user.Address));
+            if (user.VendorId.HasValue)
+                claims.Add(new Claim("vendorId", user.VendorId.Value.ToString()));
+            if (user.Latitude.HasValue)
+                claims.Add(new Claim("latitude", user.Latitude.Value.ToString()));
+            if (user.Longitude.HasValue)
+                claims.Add(new Claim("longitude", user.Longitude.Value.ToString()));
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]));
+            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+            var expiresInMinutes = double.TryParse(_configuration["Jwt:ExpiresInMinutes"], out var parsedMinutes) ? parsedMinutes : 60;
+            var expires = DateTime.UtcNow.AddMinutes(expiresInMinutes);
+
+            var token = new JwtSecurityToken(
+                issuer: _configuration["Jwt:Issuer"],
+                audience: _configuration["Jwt:Audience"],
+                claims: claims,
+                expires: expires,
+                signingCredentials: creds
+            );
+            var tokenString = new JwtSecurityTokenHandler().WriteToken(token);
+
+            Response.Cookies.Append("AuthToken", tokenString, new Microsoft.AspNetCore.Http.CookieOptions
+            {
+                HttpOnly = true,
+                Secure = HttpContext.Request.IsHttps,
+                SameSite = Microsoft.AspNetCore.Http.SameSiteMode.Strict,
+                Expires = expires
+            });
+
+            return Ok(new RegisterResponse
+            {
+                Token = tokenString,
+                ExpiresIn = expiresInMinutes * 60,
+                User = new UserDto
+                {
+                    Email = user.Email,
+                    Phone = user.Phone ?? "",
+                    Role = user.Role,
+                    VendorId = user.VendorId
+                }
+
+            });
+
+        }
+
+
 
         [Authorize]
         [HttpPost("logout")]
