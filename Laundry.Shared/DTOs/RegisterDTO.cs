@@ -24,6 +24,7 @@ namespace Laundry.Shared.DTOs
         public string Password { get; set; } = string.Empty;
         [Required]
         [DisplayName("Phone Number")]
+        [RegularExpression(@"^9\d{9}$", ErrorMessage = "Phone number must be 10 digits long.")]
         public string PhoneNumber { get; set; } = string.Empty;
 
         [Required]
@@ -31,7 +32,6 @@ namespace Laundry.Shared.DTOs
         [DisplayName("Confirm Password")]
         [Compare("Password", ErrorMessage = "The password and confirmation password do not match.")]
         public string ConfirmPassword { get; set; } = string.Empty;
-
         
     }
 
