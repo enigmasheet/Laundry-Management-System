@@ -7,7 +7,7 @@ namespace Laundry.Shared.DTOs
     {
         [Required]
         public int Id { get; set; }
-
+        // <summary>
         [Required]
         public int VendorId { get; set; }
 
