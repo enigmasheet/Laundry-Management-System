@@ -36,6 +36,8 @@
         new MenuItem("/admin/vendor", "Manage Employees", "bi-people-fill", "Manage Employees", NavLinkMatch.Prefix, new [] { "VendorAdmin" }),
         new MenuItem("/reports", "Reports", "bi-clipboard-data", "Reports", NavLinkMatch.Prefix, new [] { "VendorAdmin" }),
         new MenuItem("/order", "Order", "bi-box-seam", "Orders", NavLinkMatch.Prefix, new [] { "Employee","VendorAdmin" }),
+        new MenuItem("/profile", "My Profile", "bi-person-circle", "My Profile", NavLinkMatch.Prefix,new[]{"VendorAdmin", "Employee"}),
+
         // Example external link
         // new MenuItem("https://external.laundryhelp.com", "Help Center", "bi-info-circle", "Help Center", NavLinkMatch.None, new [] { "VendorAdmin", "Employee" }, true),
     };
