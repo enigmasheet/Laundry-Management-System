@@ -23,7 +23,11 @@ namespace Laundry.Api.Data.AutoMapper
             CreateMap<OrderItem, OrderItemDto>().ReverseMap();
 
             // User Mapping
-            CreateMap<User, UserDto>().ReverseMap();
+            CreateMap<User, UserDto>()
+                .ForMember(dest => dest.Vendor, opt => opt.MapFrom(src => src.Vendor))
+                .ReverseMap();
+            CreateMap<UserDto, UserDto>();
+            CreateMap<Vendor, VendorInfoDto>();
 
             // Vendor Mapping
             CreateMap<Vendor, VendorDto>().ReverseMap();

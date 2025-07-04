@@ -1,7 +1,6 @@
 ﻿using Laundry.Client.Services.Interface;
 using Laundry.Shared.DTOs;
 using System.Net.Http.Json;
-using static System.Net.WebRequestMethods;
 
 namespace Laundry.Client.Services
 {
@@ -13,23 +12,57 @@ namespace Laundry.Client.Services
             _http = http;
         }
 
+
+        public async Task<UserDto> GetProfileAsync()
+        {
+            try
+            {
+                var response = await _http.GetAsync("api/users/profile");
+                if (response.IsSuccessStatusCode)
+                {
+                    return await response.Content.ReadFromJsonAsync<UserDto>();
+                }
+
+                Console.Error.WriteLine($"Failed to fetch user profile. Status: {response.StatusCode}");
+                return null;
+            }
+            catch (Exception ex)
+            {
+                Console.Error.WriteLine($"Exception while fetching user profile: {ex.Message}");
+                return null;
+            }
+        }
+
+
+        public async Task<UserDto?> UpdateProfileAsync(UserDto profile)
+        {
+            try
+            {
+                var response = await _http.PutAsJsonAsync("api/users/profile", profile);
+                if (response.IsSuccessStatusCode)
+                {
+                    return await response.Content.ReadFromJsonAsync<UserDto>();
+                }
+
+                Console.Error.WriteLine($"Failed to update profile. Status: {response.StatusCode}");
+                return null;
+            }
+            catch (Exception ex)
+            {
+                Console.Error.WriteLine($"Error updating profile: {ex.Message}");
+                return null;
+            }
+        }
+
+
+
+        //From IBas 
         public Task<UserDto?> GetAllByIDAsync(int id)
         {
             throw new NotImplementedException();
         }
 
-        public async Task<UserDto> GetMyProfile()
-        {
-            try
-            {
-                return await _http.GetFromJsonAsync<UserDto>("api/auth/me");
-            }
-            catch (Exception ex)
-            {
-                Console.Error.WriteLine($"Error fetching user: {ex.Message}");
-                return null;
-            }
-        }
+        
 
         Task<UserDto> IBase<UserDto, int>.CreateAsync(UserDto dto)
         {
@@ -56,5 +89,6 @@ namespace Laundry.Client.Services
             throw new NotImplementedException();
         }
 
+       
     }
 }

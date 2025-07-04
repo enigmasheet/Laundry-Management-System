@@ -1,31 +1,219 @@
 ﻿@page "/profile"
 @attribute [Authorize]
 @inject IUserService userService
+@inject AuthenticationStateProvider AuthenticationStateProvider
 
-<h3 class="text-xl font-semibold mb-4">User Profile</h3>
+<h3 class="text-center mb-4">User Profile</h3>
 
-@if (myProfile == null)
+@if (isLoading)
 {
-    <div class="text-gray-500 animate-pulse">Loading profile...</div>
+    <div class="text-center text-muted">Loading profile...</div>
 }
-else
+else if (!string.IsNullOrEmpty(loadError))
 {
-    <div class="p-6 space-y-2">
-        <p><strong>Name:</strong> @myProfile.FullName</p>
-        <p><strong>Email:</strong> @myProfile.Email</p>
-        <p><strong>Phone:</strong> @myProfile.Phone</p>
-        <p><strong>Address:</strong> @myProfile.Address</p>
-        <p><strong>Role:</strong> @myProfile.Role</p>
-        <p><strong>Status:</strong> @(myProfile.IsActive ? "Active" : "Inactive")</p>
-    </div>
-
+    <div class="alert alert-danger text-center">Error loading profile: @loadError</div>
 }
+else if (myProfile != null)
+{
+    <EditForm Model="@editModel" OnValidSubmit="UpdateProfile">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+
+        <div class="card mx-auto shadow-sm" style="max-width: 600px;">
+            <div class="card-body">
+
+                <!-- Full Name -->
+                <div class="mb-3">
+                    <label class="form-label">Full Name</label>
+                    <InputText class="form-control" @bind-Value="editModel.FullName" />
+                </div>
+
+                <!-- Phone -->
+                <div class="mb-3">
+                    <label class="form-label">Phone</label>
+                    <InputText class="form-control" @bind-Value="editModel.Phone" />
+                </div>
+
+                <!-- Address -->
+                <div class="mb-3">
+                    <label class="form-label">Address</label>
+                    <InputTextArea class="form-control" @bind-Value="editModel.Address" />
+                </div>
+
+                <!-- Latitude & Longitude -->
+                <div class="row mb-3">
+                    <div class="col">
+                        <label class="form-label">Latitude</label>
+                        <InputNumber class="form-control" @bind-Value="editModel.Latitude" />
+                    </div>
+                    <div class="col">
+                        <label class="form-label">Longitude</label>
+                        <InputNumber class="form-control" @bind-Value="editModel.Longitude" />
+                    </div>
+                </div>
+
+                <!-- Readonly Info -->
+                <div class="mb-3">
+                    <label class="form-label text-muted">Email</label>
+                    <input class="form-control" value="@editModel.Email" readonly />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label text-muted">Role</label>
+                    <input class="form-control" value="@editModel.Role" readonly />
+                </div>
+
+                @if (IsVendorRole())
+                {
+                    <div class="mb-3">
+                        <label class="form-label text-muted">Vendor ID</label>
+                        <input class="form-control" value="@editModel.VendorId" readonly />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label text-muted">Vendor Name</label>
+                        <input class="form-control" value="@(editModel.Vendor?.Name ?? "No Vendor")" readonly />
+                    </div>
+                }
+
+                <!-- Status -->
+                <div class="mb-3">
+                    <label class="form-label text-muted">Status</label><br />
+                    <span class="badge @(editModel.IsActive ? "bg-success" : "bg-danger")">
+                        @(editModel.IsActive ? "Active" : "Inactive")
+                    </span>
+                </div>
+
+                @if (IsCustomerRole())
+                {
+                    <div class="row mb-3">
+                        <div class="col">
+                            <label class="form-label text-muted">Orders</label>
+                            <div>@(editModel.Orders?.Count ?? 0) order(s)</div>
+                        </div>
+                        <div class="col">
+                            <label class="form-label text-muted">Reviews</label>
+                            <div>@(editModel.Reviews?.Count ?? 0) review(s)</div>
+                        </div>
+                    </div>
+                }
+
+                <!-- Buttons -->
+                <div class="d-flex justify-content-end gap-2">
+                    <button class="btn btn-primary" type="submit" disabled="@isSubmitting">
+                        @(isSubmitting ? "Saving..." : "Save")
+                    </button>
+                    <button class="btn btn-secondary" type="button" @onclick="ResetForm" disabled="@isSubmitting">
+                        Cancel
+                    </button>
+                </div>
+
+                <!-- Feedback -->
+                @if (!string.IsNullOrWhiteSpace(successMessage))
+                {
+                    <div class="alert alert-success mt-3 text-center">@successMessage</div>
+                }
+                @if (!string.IsNullOrWhiteSpace(errorMessage))
+                {
+                    <div class="alert alert-danger mt-3 text-center">@errorMessage</div>
+                }
+
+            </div>
+        </div>
+    </EditForm>
+}
+
+
 
 @code {
     private UserDto? myProfile;
+    private UserDto editModel = new();
+
+    private string? successMessage;
+    private string? errorMessage;
+    private string? loadError;
+    private bool isLoading = true;
+    private bool isSubmitting = false;
 
     protected override async Task OnInitializedAsync()
     {
-        myProfile = await userService.GetMyProfile();
+        try
+        {
+            myProfile = await userService.GetProfileAsync();
+            if (myProfile != null)
+            {
+                SetEditModelFromProfile(myProfile);
+            }
+        }
+        catch (Exception ex)
+        {
+            loadError = "Unable to load profile. " + ex.Message;
+        }
+        finally
+        {
+            isLoading = false;
+        }
     }
+
+    private void SetEditModelFromProfile(UserDto profile)
+    {
+        editModel = new UserDto
+        {
+            UserId = profile.UserId,
+            FullName = profile.FullName,
+            Phone = profile.Phone,
+            Address = profile.Address,
+            Latitude = profile.Latitude,
+            Longitude = profile.Longitude,
+            Email = profile.Email,
+            Role = profile.Role,
+            IsActive = profile.IsActive,
+            VendorId = profile.VendorId,
+            Vendor = profile.Vendor,
+            Orders = profile.Orders,
+            Reviews = profile.Reviews
+        };
+    }
+
+    private async Task UpdateProfile()
+    {
+        isSubmitting = true;
+        successMessage = errorMessage = null;
+
+        try
+        {
+            var updatedProfile = await userService.UpdateProfileAsync(editModel);
+
+            if (updatedProfile != null)
+            {
+                myProfile = updatedProfile;
+                SetEditModelFromProfile(updatedProfile);
+                successMessage = "Profile updated successfully!";
+            }
+            else
+            {
+                errorMessage = "Failed to update profile.";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = "An error occurred: " + ex.Message;
+        }
+
+        isSubmitting = false;
+    }
+
+    private void ResetForm()
+    {
+        if (myProfile != null)
+        {
+            SetEditModelFromProfile(myProfile);
+            successMessage = errorMessage = null;
+        }
+    }
+
+    private bool IsVendorRole() => editModel.Role?.ToLower() is "vendoradmin" or "employee";
+    private bool IsCustomerRole() => editModel.Role?.ToLower() == "customer";
+
 }
+

@@ -35,7 +35,7 @@ namespace Laundry.Shared.DTOs
 
         public int? VendorId { get; set; }
 
-        public VendorDto? Vendor { get; set; }
+        public VendorInfoDto? Vendor { get; set; }
 
         public List<OrderDto>? Orders { get; set; }
 

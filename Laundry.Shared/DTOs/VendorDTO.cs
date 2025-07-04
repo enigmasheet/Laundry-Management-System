@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 
 namespace Laundry.Shared.DTOs
 {
@@ -40,6 +41,7 @@ namespace Laundry.Shared.DTOs
         public int TotalReviews { get; set; }
 
         // Optional collections - nullable for cases when they are not loaded
+        [JsonIgnore] 
         public List<UserDto>? Users { get; set; }
 
         public List<ServiceDto>? Services { get; set; }

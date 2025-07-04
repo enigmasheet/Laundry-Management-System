@@ -4,7 +4,8 @@ namespace Laundry.Client.Services.Interface
 {
     public interface IUserService: IBase<UserDto , int>
     {
-        Task<UserDto> GetMyProfile();
+        Task<UserDto> GetProfileAsync();
+        Task<UserDto> UpdateProfileAsync(UserDto profile);
 
     }
 }
