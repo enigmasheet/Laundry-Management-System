@@ -48,6 +48,16 @@ namespace Laundry.Api.Data.Seed
                 },
                 new User
                 {
+                    UserId = new Guid("33333533-3353-3355-3533-335333333333"),
+                    FullName = "Vendor Employee 2",
+                    Email = "employee2@FreshWash.com",
+                    PasswordHash = hashedPassword,
+                    Role = "Employee",
+                    VendorId = 2,
+                    IsActive = true
+                },
+                new User
+                {
                     UserId = new Guid("44444444-4444-4444-4444-444444444444"),
                     FullName = "John Doe",
                     Email = "john.doe@example.com",

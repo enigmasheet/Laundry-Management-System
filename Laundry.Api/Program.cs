@@ -32,10 +32,15 @@ namespace Laundry.Api
             
             
             builder.Services.AddAutoMapper(typeof(LaundryMappingProfile));
-            
+
 
             // Add controllers and Swagger/OpenAPI services
-            builder.Services.AddControllers();
+            builder.Services.AddControllers()
+                .AddJsonOptions(options =>
+                {
+                    options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.Preserve;
+                    options.JsonSerializerOptions.MaxDepth = 64; // optional: increase max depth if needed
+                });
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen(c =>
             {

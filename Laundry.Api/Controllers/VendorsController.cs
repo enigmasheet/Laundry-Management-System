@@ -51,7 +51,7 @@ namespace Laundry.Api.Controllers
         public async Task<ActionResult<VendorDto>> GetVendor(int id)
         {
             var vendor = await _context.Vendors
-                .Include(v => v.Services) // Add other Includes as needed
+                .Include(v => v.Services)// Add other Includes as needed
                 .FirstOrDefaultAsync(v => v.Id == id);
 
             if (vendor == null)

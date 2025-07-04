@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 
 namespace Laundry.Shared.DTOs
 {
@@ -24,7 +25,8 @@ namespace Laundry.Shared.DTOs
         
         [Required(ErrorMessage = "Vendor ID is required.")]
         public int VendorId { get; set; }
-         
+        
+        [JsonIgnore]  // Prevent JSON cycle by ignoring this on serialization
         public VendorDto? Vendor { get; set; }
 
         // Optional: Associated customer reviews
