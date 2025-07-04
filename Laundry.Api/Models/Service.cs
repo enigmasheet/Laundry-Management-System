@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using Laundry.Shared.Enums;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -15,11 +16,15 @@ namespace Laundry.Api.Models
         public string Description { get; set; } = null!;
 
         [Column(TypeName = "decimal(18,2)")]
-        public decimal PricePerKg { get; set; }
+        public decimal Price { get; set; }
+
+        [Required]
+        public ServiceUnit Unit { get; set; }  // <-- Enum stored as int by default
 
         public int VendorId { get; set; }
-        public Vendor Vendor { get; set; } = null!;
+        public virtual Vendor Vendor { get; set; } = null!;
 
-        public ICollection<Review> Reviews { get; set; } = new List<Review>();
+        public virtual ICollection<Review> Reviews { get; set; } = new List<Review>();
     }
+
 }

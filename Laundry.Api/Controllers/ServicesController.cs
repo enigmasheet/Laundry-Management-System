@@ -1,12 +1,12 @@
-﻿using Laundry.Api.Data;
+﻿using AutoMapper;
+using Laundry.Api.Data;
 using Laundry.Api.Models;
+using Laundry.Shared.DTOs;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Swashbuckle.AspNetCore.Annotations;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+
 
 namespace Laundry.Api.Controllers
 {
@@ -16,10 +16,29 @@ namespace Laundry.Api.Controllers
     public class ServicesController : ControllerBase
     {
         private readonly LaundryDbContext _context;
+        private readonly IMapper _mapper;
 
-        public ServicesController(LaundryDbContext context)
+        public ServicesController(LaundryDbContext context, IMapper mapper)
         {
             _context = context;
+            _mapper = mapper;
+        }
+
+        /// <summary>
+        /// Get all services for a specific vendor.
+        /// </summary>
+        [HttpGet("vendor/{vendorId}")]
+        [SwaggerOperation(Summary = "Get services by vendor ID", Description = "Retrieves all services for a given vendor ID.")]
+        [SwaggerResponse(200, "List of services retrieved successfully.")]
+        public async Task<ActionResult<IEnumerable<ServiceDto>>> GetServicesByVendorId(int vendorId)
+        {
+            var services = await _context.Services
+                                         .Where(s => s.VendorId == vendorId)
+                                         .Include(s => s.Reviews)
+                                         .ToListAsync();
+
+            var serviceDtos = _mapper.Map<List<ServiceDto>>(services);
+            return Ok(serviceDtos);
         }
 
         /// <summary>
@@ -28,9 +47,11 @@ namespace Laundry.Api.Controllers
         [HttpGet]
         [SwaggerOperation(Summary = "Get all services", Description = "Retrieves a list of all laundry services.")]
         [SwaggerResponse(200, "List of services retrieved successfully.")]
-        public async Task<ActionResult<IEnumerable<Service>>> GetServices()
+        public async Task<ActionResult<IEnumerable<ServiceDto>>> GetServices()
         {
-            return await _context.Services.ToListAsync();
+            var services = await _context.Services.Include(s => s.Reviews).ToListAsync();
+            var serviceDtos = _mapper.Map<List<ServiceDto>>(services);
+            return Ok(serviceDtos);
         }
 
         /// <summary>
@@ -40,16 +61,17 @@ namespace Laundry.Api.Controllers
         [SwaggerOperation(Summary = "Get a service by ID", Description = "Retrieves a specific service by its ID.")]
         [SwaggerResponse(200, "Service retrieved successfully.")]
         [SwaggerResponse(404, "Service not found.")]
-        public async Task<ActionResult<Service>> GetService(int id)
+        public async Task<ActionResult<ServiceDto>> GetService(int id)
         {
-            var service = await _context.Services.FindAsync(id);
+            var service = await _context.Services
+                                        .Include(s => s.Reviews)
+                                        .FirstOrDefaultAsync(s => s.Id == id);
 
             if (service == null)
-            {
                 return NotFound();
-            }
 
-            return service;
+            var serviceDto = _mapper.Map<ServiceDto>(service);
+            return Ok(serviceDto);
         }
 
         /// <summary>
@@ -60,12 +82,17 @@ namespace Laundry.Api.Controllers
         [SwaggerResponse(204, "Service updated successfully.")]
         [SwaggerResponse(400, "Invalid request. ID mismatch.")]
         [SwaggerResponse(404, "Service not found.")]
-        public async Task<IActionResult> PutService(int id, Service service)
+        public async Task<IActionResult> PutService(int id, ServiceDto serviceDto)
         {
-            if (id != service.Id)
-            {
+            if (id != serviceDto.Id)
                 return BadRequest();
-            }
+
+            var service = await _context.Services.FindAsync(id);
+            if (service == null)
+                return NotFound();
+
+            // Map updated values from DTO to entity
+            _mapper.Map(serviceDto, service);
 
             _context.Entry(service).State = EntityState.Modified;
 
@@ -76,13 +103,9 @@ namespace Laundry.Api.Controllers
             catch (DbUpdateConcurrencyException)
             {
                 if (!ServiceExists(id))
-                {
                     return NotFound();
-                }
                 else
-                {
                     throw;
-                }
             }
 
             return NoContent();
@@ -94,12 +117,16 @@ namespace Laundry.Api.Controllers
         [HttpPost]
         [SwaggerOperation(Summary = "Create a new service", Description = "Adds a new laundry service to the system.")]
         [SwaggerResponse(201, "Service created successfully.")]
-        public async Task<ActionResult<Service>> PostService(Service service)
+        public async Task<ActionResult<ServiceDto>> PostService(ServiceDto serviceDto)
         {
+            var service = _mapper.Map<Service>(serviceDto);
+
             _context.Services.Add(service);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction(nameof(GetService), new { id = service.Id }, service);
+            var createdDto = _mapper.Map<ServiceDto>(service);
+
+            return CreatedAtAction(nameof(GetService), new { id = service.Id }, createdDto);
         }
 
         /// <summary>
@@ -113,9 +140,7 @@ namespace Laundry.Api.Controllers
         {
             var service = await _context.Services.FindAsync(id);
             if (service == null)
-            {
                 return NotFound();
-            }
 
             _context.Services.Remove(service);
             await _context.SaveChangesAsync();

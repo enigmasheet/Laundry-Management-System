@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Laundry.Api.Models;
 using Laundry.Shared.DTOs;
+using Laundry.Shared.Enums;
 
 namespace Laundry.Api.Data.AutoMapper
 {
@@ -13,7 +14,7 @@ namespace Laundry.Api.Data.AutoMapper
                 .ForMember(dest => dest.OrderCode, opt => opt.MapFrom(src => $"{src.VendorId}-{src.Id}"))
                 .ForMember(dest => dest.FinalAmount, opt => opt.MapFrom(src =>
                     src.TotalAmount + src.ExpressCharge + src.TaxAmount - src.DiscountAmount))
-                .ForMember(dest => dest.IsPaid, opt => opt.MapFrom(src => src.PaymentStatus == Shared.Enums.PaymentStatus.Paid))
+                .ForMember(dest => dest.IsPaid, opt => opt.MapFrom(src => src.PaymentStatus == PaymentStatus.Paid))
                 .ReverseMap()
                 .ForMember(dest => dest.OrderCode, opt => opt.Ignore())
                 .ForMember(dest => dest.FinalAmount, opt => opt.Ignore())
@@ -26,16 +27,36 @@ namespace Laundry.Api.Data.AutoMapper
             CreateMap<User, UserDto>()
                 .ForMember(dest => dest.Vendor, opt => opt.MapFrom(src => src.Vendor))
                 .ReverseMap();
+
             CreateMap<UserDto, UserDto>();
-            CreateMap<Vendor, VendorInfoDto>();
 
             // Vendor Mapping
             CreateMap<Vendor, VendorDto>().ReverseMap();
+            CreateMap<Vendor, VendorInfoDto>();
 
-            // Other Mappings
-            CreateMap<Service, ServiceDto>().ReverseMap();
+            // Service Mapping
+            CreateMap<Service, ServiceDto>()
+                .ForMember(dest => dest.Unit, opt => opt.MapFrom(src => src.Unit.ToString()))
+                .ForMember(dest => dest.Reviews, opt => opt.MapFrom(src => src.Reviews))
+                .ForMember(dest => dest.Vendor, opt => opt.MapFrom(src => src.Vendor)); // ✅ FIXED
+
+            CreateMap<ServiceDto, Service>()
+                .ForMember(dest => dest.Unit, opt => opt.MapFrom(src => ParseServiceUnit(src.Unit)))
+                .ForMember(dest => dest.Reviews, opt => opt.Ignore())
+                .ForMember(dest => dest.Vendor, opt => opt.MapFrom(src => src.Vendor)); // ✅ FIXED
+
+            // Review Mapping
             CreateMap<Review, ReviewDto>().ReverseMap();
+
+            // VendorInquiry Mapping
             CreateMap<VendorInquiry, VendorInquiryDto>().ReverseMap();
+        }
+
+        private static ServiceUnit ParseServiceUnit(string unit)
+        {
+            return string.IsNullOrWhiteSpace(unit)
+                ? ServiceUnit.PerKg
+                : Enum.TryParse<ServiceUnit>(unit, true, out var parsedUnit) ? parsedUnit : ServiceUnit.PerKg;
         }
     }
 }

@@ -18,10 +18,14 @@ namespace Laundry.Shared.DTOs
 
         [Required(ErrorMessage = "Price per kg is required.")]
         [Range(0, double.MaxValue, ErrorMessage = "Price per kg must be non-negative.")]
-        public decimal PricePerKg { get; set; }
+        public decimal Price { get; set; }
 
+        public string Unit { get; set; } = string.Empty; // Must match enum values
+        
         [Required(ErrorMessage = "Vendor ID is required.")]
         public int VendorId { get; set; }
+         
+        public VendorDto? Vendor { get; set; }
 
         // Optional: Associated customer reviews
         public IReadOnlyList<ReviewDto>? Reviews { get; set; }

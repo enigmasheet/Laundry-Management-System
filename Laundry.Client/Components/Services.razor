@@ -5,39 +5,51 @@
 
 <h3 class="mb-4">Manage Services</h3>
 
-<!-- Add/Edit Form -->
-<EditForm Model="@editingService" OnValidSubmit="@SaveService">
-    <DataAnnotationsValidator />
-    <ValidationSummary />
+@if (canEdit)
+{
+    <!-- Add/Edit Form -->
+    <EditForm Model="@editingService" OnValidSubmit="@SaveService">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
 
-    <div class="row g-3 mb-3">
-        <div class="col-md-6">
-            <label>Name</label>
-            <InputText @bind-Value="editingService.Name" class="form-control" />
-        </div>
-        <div class="col-md-6">
-            <label>Vendor ID</label>
-            <InputNumber @bind-Value="editingService.VendorId" class="form-control" />
-        </div>
+        <div class="row g-3 mb-3">
+            <div class="col-md-6">
+                <label>Name</label>
+                <InputText @bind-Value="editingService.Name" class="form-control" />
+            </div>
 
-        <div class="col-md-6">
-            <label>Price per Kg</label>
-            <InputNumber @bind-Value="editingService.PricePerKg" class="form-control" />
-        </div>
+            <!-- Hidden VendorId: -->
+            <input type="hidden" @bind="editingService.VendorId" />
 
-        <div class="col-md-12">
-            <label>Description</label>
-            <InputTextArea @bind-Value="editingService.Description" class="form-control" rows="3" />
-        </div>
+            <div class="col-md-6">
+                <label>Price</label>
+                <InputNumber @bind-Value="editingService.Price" class="form-control" />
+            </div>
 
-        <div class="col-md-12 text-end">
-            <button type="submit" class="btn btn-primary me-2">@((editingService.Id == 0) ? "Add" : "Update")</button>
-            <button type="button" class="btn btn-secondary" @onclick="ResetForm">Cancel</button>
-        </div>
-    </div>
-</EditForm>
+            <div class="col-md-6">
+                <label>Unit</label>
+                <InputSelect @bind-Value="editingService.Unit" class="form-control">
+                    @foreach (var unit in Enum.GetValues<Shared.Enums.ServiceUnit>())
+                    {
+                        <option value="@unit">@unit.ToString()</option>
+                    }
+                </InputSelect>
+            </div>
 
-<hr />
+            <div class="col-md-12">
+                <label>Description</label>
+                <InputTextArea @bind-Value="editingService.Description" class="form-control" rows="3" />
+            </div>
+
+            <div class="col-md-12 text-end">
+                <button type="submit" class="btn btn-primary me-2">@((editingService.Id == 0) ? "Add" : "Update")</button>
+                <button type="button" class="btn btn-secondary" @onclick="ResetForm">Cancel</button>
+            </div>
+        </div>
+    </EditForm>
+
+    <hr />
+}
 
 <!-- List -->
 <table class="table table-bordered mt-3">
@@ -45,8 +57,9 @@
         <tr>
             <th>ID</th>
             <th>Name</th>
-            <th>Vendor ID</th>
-            <th>Price/Kg</th>
+            <!-- Vendor ID column hidden -->
+            <th>Price</th>
+            <th>Unit</th>
             <th>Description</th>
             <th class="text-end">Actions</th>
         </tr>
@@ -59,12 +72,16 @@
                 <tr>
                     <td>@service.Id</td>
                     <td>@service.Name</td>
-                    <td>@service.VendorId</td>
-                    <td>@service.PricePerKg</td>
+                    <!-- VendorId hidden from UI -->
+                    <td>@service.Price</td>
+                    <td>@service.Unit</td>
                     <td>@service.Description</td>
                     <td class="text-end">
-                        <button class="btn btn-sm btn-warning me-2" @onclick="() => EditService(service)">Edit</button>
-                        <button class="btn btn-sm btn-danger" @onclick="() => DeleteService(service.Id)">Delete</button>
+                        @if (canEdit)
+                        {
+                            <button class="btn btn-sm btn-warning me-2" @onclick="() => EditService(service)">Edit</button>
+                            <button class="btn btn-sm btn-danger" @onclick="async () => await DeleteService(service.Id)">Delete</button>
+                        }
                     </td>
                 </tr>
             }
@@ -77,18 +94,44 @@
         }
     </tbody>
 </table>
+
 @code {
     private List<ServiceDto> services = new();
     private ServiceDto editingService = new();
-    private readonly IJSRuntime jS;
+    private ClaimsPrincipal? currentUser;
+    private bool isEmployeeRole;
+    private bool isVendorAdminRole;
+    private bool canEdit => isEmployeeRole || isVendorAdminRole;
+
+    [Inject] private IJSRuntime JS { get; set; } = default!;
+    [Inject] private AuthenticationStateProvider AuthenticationStateProvider { get; set; } = default!;
+
     protected override async Task OnInitializedAsync()
     {
-        await LoadServices();
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        currentUser = authState.User;
+
+        isEmployeeRole = currentUser.IsInRole("Employee");
+        isVendorAdminRole = currentUser.IsInRole("VendorAdmin");
+
+        await LoadServices(currentUser);
+        ResetForm();
     }
 
-    private async Task LoadServices()
+    private int? GetVendorIdFromClaims(ClaimsPrincipal user) =>
+        int.TryParse(user.FindFirst("vendorId")?.Value, out var id) ? id : null;
+
+    private async Task LoadServices(ClaimsPrincipal user)
     {
-        services = await ServiceService.GetAllAsync();
+        var vendorId = GetVendorIdFromClaims(user);
+        if (vendorId.HasValue)
+        {
+            services = await ServiceService.GetByVendorIdAsync(vendorId.Value);
+        }
+        else
+        {
+            services = new();
+        }
     }
 
     private void EditService(ServiceDto service)
@@ -98,13 +141,17 @@
             Id = service.Id,
             Name = service.Name,
             Description = service.Description,
-            PricePerKg = service.PricePerKg,
+            Price = service.Price,
+            Unit = service.Unit,
             VendorId = service.VendorId
         };
     }
 
     private async Task SaveService()
     {
+        if (!canEdit)
+            return; // extra safeguard
+
         if (editingService.Id == 0)
         {
             await ServiceService.CreateAsync(editingService);
@@ -114,22 +161,39 @@
             await ServiceService.UpdateAsync(editingService.Id, editingService);
         }
 
-        await LoadServices();
+        if (currentUser is not null)
+        {
+            await LoadServices(currentUser);
+        }
+
         ResetForm();
     }
 
     private async Task DeleteService(int id)
     {
-        var confirmed = await jS.InvokeAsync<bool>("confirm", $"Are you sure you want to delete service {id}?");
+        if (!canEdit)
+            return; // extra safeguard
+
+        var confirmed = await JS.InvokeAsync<bool>("confirm", $"Are you sure you want to delete service {id}?");
         if (confirmed)
         {
             await ServiceService.DeleteAsync(id);
-            await LoadServices();
+            if (currentUser is not null)
+            {
+                await LoadServices(currentUser);
+            }
         }
     }
 
     private void ResetForm()
     {
         editingService = new ServiceDto();
+
+        if (currentUser is not null)
+        {
+            var vendorId = GetVendorIdFromClaims(currentUser);
+            if (vendorId.HasValue)
+                editingService.VendorId = vendorId.Value;
+        }
     }
 }

@@ -18,12 +18,12 @@ namespace Laundry.Client.Services
             try
             {
                 var result = await _http.GetFromJsonAsync<List<ServiceDto>>("api/services");
-                return result ?? [];
+                return result ?? new List<ServiceDto>();
             }
             catch (Exception ex)
             {
                 Console.Error.WriteLine($"Error fetching services: {ex.Message}");
-                return [];
+                return new List<ServiceDto>();
             }
         }
 
@@ -37,6 +37,20 @@ namespace Laundry.Client.Services
             {
                 Console.Error.WriteLine($"Error fetching service with ID {id}: {ex.Message}");
                 return null;
+            }
+        }
+
+        public async Task<List<ServiceDto>> GetByVendorIdAsync(int vendorId)
+        {
+            try
+            {
+                var result = await _http.GetFromJsonAsync<List<ServiceDto>>($"api/services/vendor/{vendorId}");
+                return result ?? new List<ServiceDto>();
+            }
+            catch (Exception ex)
+            {
+                Console.Error.WriteLine($"Error fetching services for vendor {vendorId}: {ex.Message}");
+                return new List<ServiceDto>();
             }
         }
 
@@ -59,6 +73,7 @@ namespace Laundry.Client.Services
             response.EnsureSuccessStatusCode();
         }
 
+        // You can remove this or implement if needed.
         public Task<ServiceDto?> GetAllByIDAsync(int id)
         {
             throw new NotImplementedException();

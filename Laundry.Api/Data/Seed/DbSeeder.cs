@@ -68,10 +68,11 @@ namespace Laundry.Api.Data.Seed
 
             // Services
             modelBuilder.Entity<Service>().HasData(
-                new Service { Id = 1, Name = "Wash & Fold", Description = "Basic wash and fold service", PricePerKg = 5.00m, VendorId = 1 },
-                new Service { Id = 2, Name = "Dry Cleaning", Description = "Premium dry cleaning", PricePerKg = 15.00m, VendorId = 1 },
-                new Service { Id = 3, Name = "Wash & Iron", Description = "Wash and iron clothes", PricePerKg = 10.00m, VendorId = 2 }
+                new Service { Id = 1, Name = "Wash & Fold", Description = "Basic wash and fold service", Price = 5.00m, Unit = ServiceUnit.PerKg, VendorId = 1 },
+                new Service { Id = 2, Name = "Dry Cleaning", Description = "Premium dry cleaning", Price = 15.00m, Unit = ServiceUnit.PerItem, VendorId = 1 },
+                new Service { Id = 3, Name = "Wash & Iron", Description = "Wash and iron clothes", Price = 10.00m, Unit = ServiceUnit.PerKg, VendorId = 2 }
             );
+
 
             // Orders
             modelBuilder.Entity<Order>().HasData(

@@ -40,7 +40,7 @@ namespace Laundry.Api.Data
                 .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<Service>()
-                .Property(s => s.PricePerKg)
+                .Property(s => s.Price)
                 .HasPrecision(18, 2);
 
             modelBuilder.Entity<Order>()
