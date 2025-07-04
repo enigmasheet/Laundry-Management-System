@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
+using Laundry.Shared.Enums;
 
 namespace Laundry.Shared.DTOs
 {
@@ -17,19 +18,19 @@ namespace Laundry.Shared.DTOs
         [StringLength(1000, ErrorMessage = "Description cannot exceed 1000 characters.")]
         public string Description { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "Price per kg is required.")]
-        [Range(0, double.MaxValue, ErrorMessage = "Price per kg must be non-negative.")]
+        [Required(ErrorMessage = "Price is required.")]
+        [Range(0, double.MaxValue, ErrorMessage = "Price must be non-negative.")]
         public decimal Price { get; set; }
 
-        public string Unit { get; set; } = string.Empty; // Must match enum values
-        
+        [Required(ErrorMessage = "Unit is required.")]
+        public string Unit { get; set; } = string.Empty;
+
         [Required(ErrorMessage = "Vendor ID is required.")]
         public int VendorId { get; set; }
-        
-        [JsonIgnore]  // Prevent JSON cycle by ignoring this on serialization
+
+        [JsonIgnore]
         public VendorDto? Vendor { get; set; }
 
-        // Optional: Associated customer reviews
         public IReadOnlyList<ReviewDto>? Reviews { get; set; }
     }
 }

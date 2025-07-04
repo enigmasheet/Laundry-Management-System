@@ -1,5 +1,6 @@
 ﻿@page "/services"
 @inject IServiceService ServiceService
+@using Laundry.Shared
 @using Laundry.Shared.DTOs
 @using System.Net.Http.Json
 
@@ -27,14 +28,17 @@
             </div>
 
             <div class="col-md-6">
-                <label>Unit</label>
-                <InputSelect @bind-Value="editingService.Unit" class="form-control">
-                    @foreach (var unit in Enum.GetValues<Shared.Enums.ServiceUnit>())
+                <label for="unitSelect" class="form-label">Unit</label>
+                <InputSelect id="unitSelect" @bind-Value="editingService.Unit" class="form-select">
+                    <option value="" disabled selected hidden>Select Unit</option>
+                    @foreach (var unit in Enum.GetValues(typeof(Shared.Enums.ServiceUnit)).Cast<Enum>())
                     {
-                        <option value="@unit">@unit.ToString()</option>
+                        <option value="@unit">@unit.GetDisplayName()</option>
                     }
                 </InputSelect>
+
             </div>
+
 
             <div class="col-md-12">
                 <label>Description</label>
@@ -55,7 +59,9 @@
 <table class="table table-bordered mt-3">
     <thead class="table-light">
         <tr>
-            <th>ID</th>
+            <th>S.No</th>
+            <th>Id</th>
+
             <th>Name</th>
             <!-- Vendor ID column hidden -->
             <th>Price</th>
@@ -67,20 +73,21 @@
     <tbody>
         @if (services?.Count > 0)
         {
-            @foreach (var service in services)
+            @foreach (var service in services.Select((s, index) => new { Service = s, Index = index + 1 }))
             {
                 <tr>
-                    <td>@service.Id</td>
-                    <td>@service.Name</td>
+                    <td>@service.Index</td> <!-- S.No -->
+                    <td>@service.Service.Id</td>
+                    <td>@service.Service.Name</td>
                     <!-- VendorId hidden from UI -->
-                    <td>@service.Price</td>
-                    <td>@service.Unit</td>
-                    <td>@service.Description</td>
+                    <td>@service.Service.Price</td>
+                    <td>@service.Service.Unit</td>
+                    <td>@service.Service.Description</td>
                     <td class="text-end">
                         @if (canEdit)
                         {
-                            <button class="btn btn-sm btn-warning me-2" @onclick="() => EditService(service)">Edit</button>
-                            <button class="btn btn-sm btn-danger" @onclick="async () => await DeleteService(service.Id)">Delete</button>
+                            <button class="btn btn-sm btn-warning me-2" @onclick="() => EditService(service.Service)">Edit</button>
+                            <button class="btn btn-sm btn-danger" @onclick=" async () => await DeleteService(service.Service.Id)">Delete</button>
                         }
                     </td>
                 </tr>
@@ -102,7 +109,7 @@
     private bool isEmployeeRole;
     private bool isVendorAdminRole;
     private bool canEdit => isEmployeeRole || isVendorAdminRole;
-
+    
     [Inject] private IJSRuntime JS { get; set; } = default!;
     [Inject] private AuthenticationStateProvider AuthenticationStateProvider { get; set; } = default!;
 
