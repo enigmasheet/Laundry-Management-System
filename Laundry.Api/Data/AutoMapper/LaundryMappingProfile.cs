@@ -31,7 +31,18 @@ namespace Laundry.Api.Data.AutoMapper
             CreateMap<UserDto, UserDto>();
 
             // Vendor Mapping
-            CreateMap<Vendor, VendorDto>().ReverseMap();
+            CreateMap<Vendor, VendorDto>()
+                .ForMember(dest => dest.Users, opt => opt.Ignore())
+                .ForMember(dest => dest.Services, opt => opt.Ignore())
+                .ForMember(dest => dest.Orders, opt => opt.Ignore())
+                .ForMember(dest => dest.Inquiries, opt => opt.Ignore())
+                .ForMember(dest => dest.Reviews, opt => opt.Ignore())
+                .ReverseMap()
+                .ForMember(dest => dest.Users, opt => opt.Ignore())
+                .ForMember(dest => dest.Services, opt => opt.Ignore())
+                .ForMember(dest => dest.Orders, opt => opt.Ignore())
+                .ForMember(dest => dest.Inquiries, opt => opt.Ignore())
+                .ForMember(dest => dest.Reviews, opt => opt.Ignore());
             CreateMap<Vendor, VendorInfoDto>();
 
             // Service Mapping

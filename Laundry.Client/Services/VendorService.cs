@@ -18,12 +18,12 @@ namespace Laundry.Client.Services
             try
             {
                 var result = await _http.GetFromJsonAsync<List<VendorDto>>("api/vendors");
-                return result ?? [];
+                return result ?? new List<VendorDto>();
             }
             catch (Exception ex)
             {
                 Console.Error.WriteLine($"Error fetching vendors: {ex.Message}");
-                return [];
+                return new List<VendorDto>(); 
             }
         }
         public Task<VendorDto?> GetAllByIDAsync(int id)

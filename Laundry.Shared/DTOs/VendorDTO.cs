@@ -43,13 +43,13 @@ namespace Laundry.Shared.DTOs
         // Optional collections - nullable for cases when they are not loaded
         [JsonIgnore] 
         public List<UserDto>? Users { get; set; }
-
+        [JsonIgnore]
         public List<ServiceDto>? Services { get; set; }
-
+        [JsonIgnore]
         public List<OrderDto>? Orders { get; set; }
-
+        [JsonIgnore]
         public List<VendorInquiryDto>? Inquiries { get; set; }
-
+        [JsonIgnore]
         public List<ReviewDto>? Reviews { get; set; }
     }
 }

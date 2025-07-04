@@ -29,7 +29,7 @@ namespace Laundry.Api.Controllers
         /// </summary>
         [HttpGet]
         [SwaggerOperation(Summary = "Get all active vendors", Description = "Retrieves a list of all active vendors.")]
-        public async Task<ActionResult<IEnumerable<VendorDto>>> GetVendors()
+        public async Task<ActionResult<List<VendorDto>>> GetVendors()
         {
             var vendors = await _context.Vendors
                 .Where(v => v.IsActive)
