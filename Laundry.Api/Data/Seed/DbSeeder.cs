@@ -117,7 +117,9 @@ namespace Laundry.Api.Data.Seed
                     Id = 1,
                     OrderId = 1,
                     ServiceId = 1,
-                    QuantityKg = 3,
+                    Quantity     = 3,
+                    Unit = ServiceUnit.PerKg,       // enum value included
+
                     UnitPrice = 5.00m,
                     TotalPrice = 3 * 5.00m
                 },
@@ -126,7 +128,9 @@ namespace Laundry.Api.Data.Seed
                     Id = 2,
                     OrderId = 1,
                     ServiceId = 2,
-                    QuantityKg = 1,
+                    Quantity = 1,
+                    Unit = ServiceUnit.PerKg,       // enum value included
+
                     UnitPrice = 15.00m,
                     TotalPrice = 1 * 15.00m
                 },
@@ -135,7 +139,9 @@ namespace Laundry.Api.Data.Seed
                     Id = 3,
                     OrderId = 2,
                     ServiceId = 3,
-                    QuantityKg = 2,
+                    Quantity = 2,
+                    Unit = ServiceUnit.PerKg,       // enum value included
+
                     UnitPrice = 10.00m,
                     TotalPrice = 2 * 10.00m
                 }

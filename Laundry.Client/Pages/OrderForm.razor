@@ -10,6 +10,8 @@
 
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject IVendorService VendorService
+@inject IServiceService ServiceService
+
 
 <EditForm Model="@order" OnValidSubmit="ShowConfirmModal">
     <DataAnnotationsValidator />
@@ -45,7 +47,7 @@
             }
             else
             {
-                <InputSelect @bind-Value="order.VendorId" class="form-control">
+                <InputSelect @bind-Value="order.VendorId" class="form-control" @onchange="OnVendorChanged">
                     <option value="">-- Select Vendor --</option>
                     @if (vendors == null || vendors.Count == 0)
                     {
@@ -131,32 +133,51 @@
     {
         <div class="border p-3 mb-3 rounded shadow-sm bg-light">
             <div class="row gx-3 gy-2 align-items-end">
-                <div class="col-sm-3 col-6">
-                    <label class="form-label">Service ID</label>
-                    <InputNumber @bind-Value="item.ServiceId" class="form-control" />
+
+                <div class="col-sm-4 col-6">
+                    <label class="form-label">Service</label>
+                    <InputSelect class="form-control"
+                                 @bind-Value="item.ServiceId"
+                                 @onchange="@(e => OnServiceChanged(item, e))">
+                        <option value="0">-- Select Service --</option>
+                        @foreach (var service in services)
+                        {
+                            <option value="@service.Id">
+                                @service.Name (@service.Price.ToString("C")) - @service.Unit
+                            </option>
+                        }
+                    </InputSelect>
+
+
                 </div>
 
                 <div class="col-sm-3 col-6">
-                    <label class="form-label">Quantity (Kg)</label>
-                    <InputNumber @bind-Value="item.QuantityKg" class="form-control" @oninput="RecalculateTotal" />
+                    <label class="form-label">Quantity (@(item.Unit?.ToString() ?? ""))</label>
+                    <InputNumber @bind-Value="item.Quantity" class="form-control" @oninput="RecalculateTotal" min="0.01" step="0.01" />
                 </div>
 
                 <div class="col-sm-3 col-6">
                     <label class="form-label">Unit Price</label>
-                    <InputNumber @bind-Value="item.UnitPrice" class="form-control" @oninput="RecalculateTotal" />
+                    <InputNumber @bind-Value="item.UnitPrice" class="form-control" @oninput="RecalculateTotal" min="0" step="0.01" />
+                </div>
+                <div class="col-sm-3 col-6">
+                    <label class="form-label">Unit </label>
+                    <input class="form-control" value="@(item.Unit?.GetDisplayName() ?? "N/A")" readonly />
                 </div>
 
                 <div class="col-sm-2 col-6 text-center">
                     <label class="form-label">Total Price</label>
-                    <div class="form-control-plaintext fw-bold">@item.TotalPrice</div>
+                    <div class="form-control-plaintext fw-bold">@item.TotalPrice.ToString("C")</div>
                 </div>
 
                 <div class="col-12 text-end">
                     <button type="button" class="btn btn-danger btn-sm mt-1" @onclick="() => RemoveOrderItem(item)">Remove</button>
                 </div>
+
             </div>
         </div>
     }
+
 
     <button type="button" class="btn btn-outline-secondary mb-4" @onclick="AddOrderItem">+ Add Item</button>
 
@@ -200,9 +221,10 @@
                     <table class="table table-bordered">
                         <thead>
                             <tr>
-                                <th>Service ID</th>
-                                <th>Quantity (Kg)</th>
+                                <th>Service </th>
+                                <th>Quantity</th>
                                 <th>Unit Price</th>
+                                <th>Unit</th>
                                 <th>Total Price</th>
                             </tr>
                         </thead>
@@ -210,10 +232,12 @@
                             @foreach (var item in order.OrderItems)
                             {
                                 <tr>
-                                    <td>@item.ServiceId</td>
-                                    <td>@item.QuantityKg</td>
-                                    <td>@item.UnitPrice</td>
+                                    <td>@(item.Service?.Name ?? "N/A")</td>
+                                    <td>@item.Quantity</td>
+                                    <td>@(item.Service?.Price ?? 0)</td>
+                                    <td>@(item.Unit?.ToString() ?? "N/A")</td>
                                     <td>@item.TotalPrice</td>
+
                                 </tr>
                             }
                         </tbody>
@@ -239,6 +263,7 @@
 
     private OrderDto order = new();
     private List<VendorDto> vendors = new();
+    private List<ServiceDto> services = new();
 
     private bool isCustomerRole;
     private bool isVendorRole;
@@ -333,6 +358,8 @@
         else
             vendors = await VendorService.GetAllAsync();
 
+        await LoadServicesForVendorAsync(order.VendorId);
+
         if (Id.HasValue)
         {
             order.Id = Id.Value;
@@ -343,7 +370,17 @@
             InitializeNewOrder();
         }
     }
-
+    private async Task LoadServicesForVendorAsync(int? vendorId)
+    {
+        if (vendorId.HasValue)
+        {
+            services = (await ServiceService.GetByVendorIdAsync(vendorId.Value)).ToList();
+        }
+        else
+        {
+            services = new List<ServiceDto>();
+        }
+    }
     private async Task LoadVendorForUserAsync(System.Security.Claims.ClaimsPrincipal user)
     {
         var vendorId = GetVendorIdFromClaims(user);
@@ -358,7 +395,18 @@
             }
         }
     }
+    private async Task OnVendorChanged(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out int newVendorId))
+        {
+            order.VendorId = newVendorId;
+            await LoadServicesForVendorAsync(newVendorId);
 
+            // Clear OrderItems if services changed to avoid mismatch
+            order.OrderItems.Clear();
+            AddOrderItem();
+        }
+    }
     private int? GetVendorIdFromClaims(System.Security.Claims.ClaimsPrincipal user)
         => int.TryParse(user.FindFirst(c => c.Type == "vendorId")?.Value, out var id) ? id : null;
 
@@ -382,7 +430,7 @@
 
         order.OrderItems = new List<OrderItemDto>
         {
-            new() { Id = 1, OrderId = order.Id, ServiceId = 101, QuantityKg = 1.0, UnitPrice = 10.0m }
+            new() { Id = 1, OrderId = order.Id, ServiceId = 101, Quantity = 1.0, UnitPrice = 10.0m }
         };
 
         RecalculateTotal();
@@ -423,19 +471,50 @@
             }
         }
     }
+    private void OnServiceChanged(OrderItemDto item, ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out int selectedServiceId))
+        {
+            item.ServiceId = selectedServiceId;
+
+            var selectedService = services.FirstOrDefault(s => s.Id == selectedServiceId);
+            if (selectedService != null)
+            {
+                item.UnitPrice = selectedService.Price;
+                item.Unit = selectedService.Unit switch
+                {
+                    "Kg" => ServiceUnit.PerKg,
+                    "Pcs" => ServiceUnit.PerItem,
+                    _ => null
+                };
+                item.Service = selectedService;
+            }
+            else
+            {
+                item.UnitPrice = 0;
+                item.Unit = null;
+                item.Service = null;
+            }
+
+            RecalculateTotal();
+        }
+    }
 
     private void AddOrderItem()
     {
+        if (!services.Any()) return;
+
         order.OrderItems.Add(new OrderItemDto
         {
             Id = order.OrderItems.Count + 1,
             OrderId = order.Id,
             ServiceId = 0,
-            QuantityKg = 1.0,
+            Quantity = 1.0,
             UnitPrice = 0.0m
         });
         RecalculateTotal();
     }
+
 
     private void RemoveOrderItem(OrderItemDto item)
     {
@@ -446,11 +525,11 @@
     private void RecalculateTotal()
     {
         foreach (var item in order.OrderItems)
-            item.TotalPrice = (decimal)item.QuantityKg * item.UnitPrice;
+        {
+            item.TotalPrice = (decimal)item.Quantity * item.UnitPrice;
+        }
 
         order.TotalAmount = order.OrderItems.Sum(i => i.TotalPrice);
-
-        // Update FinalAmount here if needed
 
         StateHasChanged();
     }

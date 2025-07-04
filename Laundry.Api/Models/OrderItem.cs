@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Laundry.Shared.Enums;
 
 namespace Laundry.Api.Models
 {
@@ -16,10 +17,12 @@ namespace Laundry.Api.Models
         public int ServiceId { get; set; }
         public Service Service { get; set; } = null!;
 
+        [Required]
         [Range(0.01, double.MaxValue)]
-        public double QuantityKg { get; set; }
+        public double Quantity { get; set; }
 
-        public string? UnitType { get; set; } // e.g., "kg", "lbs"
+        [Required]
+        public ServiceUnit Unit { get; set; } // Enum-based unit instead of string
 
         [Column(TypeName = "decimal(18,2)")]
         [Range(0, double.MaxValue)]
@@ -27,6 +30,5 @@ namespace Laundry.Api.Models
 
         [Column(TypeName = "decimal(18,2)")]
         public decimal TotalPrice { get; set; }
-
     }
 }

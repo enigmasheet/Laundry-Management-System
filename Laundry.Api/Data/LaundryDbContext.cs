@@ -98,7 +98,7 @@ namespace Laundry.Api.Data
                 .IsRequired();
 
             modelBuilder.Entity<OrderItem>()
-                .Property(oi => oi.QuantityKg)
+                .Property(oi => oi.Quantity)
                 .IsRequired();
 
             // Constraints and property configs for other entities
