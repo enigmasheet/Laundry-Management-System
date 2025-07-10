@@ -11,6 +11,7 @@
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject IVendorService VendorService
 @inject IServiceService ServiceService
+@inject IOrderService OrderService
 
 
 <EditForm Model="@order" OnValidSubmit="ShowConfirmModal">
@@ -65,7 +66,7 @@
                 @if (VendorIdFromQuery.HasValue)
                 {
                     <div class="form-check mt-1">
-                        <input type="checkbox" class="form-check-input" id="resetVendor" @bind="resetVendorChecked" />
+                        <input type="checkbox" class="form-check-input" id="resetVendor" @bind="ResetVendorChecked" />
                         <label class="form-check-label" for="resetVendor">Reset to Original Vendor</label>
                     </div>
                 }
@@ -137,32 +138,29 @@
                 <div class="col-sm-4 col-6">
                     <label class="form-label">Service</label>
                     <InputSelect class="form-control"
-                                 @bind-Value="item.ServiceId"
-                                 @onchange="@(e => OnServiceChanged(item, e))">
+                                 TValue="int"
+                                 Value="item.ServiceId"
+                                 ValueChanged="@(async (int serviceId) => await OnServiceChanged(item, serviceId))"
+                                 ValueExpression="(() => item.ServiceId)">
                         <option value="0">-- Select Service --</option>
                         @foreach (var service in services)
                         {
-                            <option value="@service.Id">
-                                @service.Name (@service.Price.ToString("C")) - @service.Unit
-                            </option>
+                            <option value="@service.Id">@service.Name (@service.Price.ToString("C")) - @service.Unit</option>
                         }
                     </InputSelect>
+
 
 
                 </div>
 
                 <div class="col-sm-3 col-6">
-                    <label class="form-label">Quantity (@(item.Unit?.ToString() ?? ""))</label>
+                    <label class="form-label">Quantity (@(item.Unit?.ToString() ?? "N/A"))</label>
                     <InputNumber @bind-Value="item.Quantity" class="form-control" @oninput="RecalculateTotal" min="0.01" step="0.01" />
                 </div>
 
                 <div class="col-sm-3 col-6">
                     <label class="form-label">Unit Price</label>
                     <InputNumber @bind-Value="item.UnitPrice" class="form-control" @oninput="RecalculateTotal" min="0" step="0.01" />
-                </div>
-                <div class="col-sm-3 col-6">
-                    <label class="form-label">Unit </label>
-                    <input class="form-control" value="@(item.Unit?.GetDisplayName() ?? "N/A")" readonly />
                 </div>
 
                 <div class="col-sm-2 col-6 text-center">
@@ -362,8 +360,17 @@
 
         if (Id.HasValue)
         {
-            order.Id = Id.Value;
-            // TODO: Load order details by Id here
+            var loadedOrder = await OrderService.GetByIdAsync(Id.Value);
+            if (loadedOrder != null)
+            {
+                order = loadedOrder;
+                await LoadServicesForVendorAsync(order.VendorId);
+            }
+            else
+            {
+                // handle not found case or initialize new order
+                InitializeNewOrder();
+            }
         }
         else
         {
@@ -471,46 +478,53 @@
             }
         }
     }
-    private void OnServiceChanged(OrderItemDto item, ChangeEventArgs e)
+    private Task OnServiceChanged(OrderItemDto item, int serviceId)
     {
-        if (int.TryParse(e.Value?.ToString(), out int selectedServiceId))
+        var service = services.FirstOrDefault(s => s.Id == serviceId);
+        if (service != null)
         {
-            item.ServiceId = selectedServiceId;
-
-            var selectedService = services.FirstOrDefault(s => s.Id == selectedServiceId);
-            if (selectedService != null)
+            item.ServiceId = service.Id;
+            item.UnitPrice = service.Price;
+            if (Enum.TryParse<ServiceUnit>(service.Unit, ignoreCase: true, out var unitEnum))
             {
-                item.UnitPrice = selectedService.Price;
-                item.Unit = selectedService.Unit switch
-                {
-                    "Kg" => ServiceUnit.PerKg,
-                    "Pcs" => ServiceUnit.PerItem,
-                    _ => null
-                };
-                item.Service = selectedService;
+                item.Unit = unitEnum;
             }
             else
             {
-                item.UnitPrice = 0;
-                item.Unit = null;
-                item.Service = null;
+                item.Unit = null; // or a default value
             }
-
-            RecalculateTotal();
+            item.Service = service;
         }
+        else
+        {
+            item.UnitPrice = 0;
+            item.Unit = null;
+            item.Service = null;
+            item.ServiceId = 0;
+        }
+        RecalculateTotal();
+        StateHasChanged();
+        return Task.CompletedTask;
+
     }
+
+
 
     private void AddOrderItem()
     {
         if (!services.Any()) return;
 
+        var firstService = services.First();
+
         order.OrderItems.Add(new OrderItemDto
         {
             Id = order.OrderItems.Count + 1,
             OrderId = order.Id,
-            ServiceId = 0,
+            ServiceId = firstService.Id,
             Quantity = 1.0,
-            UnitPrice = 0.0m
+            UnitPrice = firstService.Price,
+            Unit = Enum.TryParse<ServiceUnit>(firstService.Unit, ignoreCase: true, out var unitEnum) ? unitEnum : null,
+            Service = firstService
         });
         RecalculateTotal();
     }
@@ -538,16 +552,27 @@
 
     private void CloseConfirmModal() => showConfirmModal = false;
 
-    private void SubmitOrder()
+    private async Task SubmitOrder()
     {
         showConfirmModal = false;
         order.UpdatedAt = DateTime.UtcNow;
 
-        // TODO: Call API to save order
+        if (order.Id == 0) // New order
+        {
+            var createdOrder = await OrderService.CreateAsync(order);
+            order = createdOrder;
+        }
+        else
+        {
+            await OrderService.UpdateAsync(order.Id, order);
+        }
+
+        // You can show a toast notification here or navigate:
+        // e.g. NavigationManager.NavigateTo("/orders");
 
         Console.WriteLine($"Order submitted. Customer Phone: {order.CustomerPhone}, Total: {order.TotalAmount:C}");
-        // TODO: Navigate or show success notification
     }
+
 
     private string SelectedVendorName => vendors.FirstOrDefault(v => v.Id == order.VendorId)?.Name ?? "Unknown Vendor";
 

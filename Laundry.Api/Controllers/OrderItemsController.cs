@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Swashbuckle.AspNetCore.Annotations;
 
+
 namespace Laundry.Api.Controllers
 {
     [Route("api/[controller]")]
@@ -33,8 +34,8 @@ namespace Laundry.Api.Controllers
         public async Task<ActionResult<IEnumerable<OrderItemDto>>> GetOrderItems()
         {
             var items = await _context.OrderItems.ToListAsync();
-            var orderItemDTO = _mapper.Map<List<OrderItemDto>>(items);
-            return Ok(orderItemDTO);
+            var orderItemDtos = _mapper.Map<List<OrderItemDto>>(items);
+            return Ok(orderItemDtos);
         }
 
         /// <summary>
@@ -55,9 +56,10 @@ namespace Laundry.Api.Controllers
             {
                 return NotFound();
             }
-            var orderItemList = _mapper.Map<List<OrderItemDto>>(orderItem);
 
-            return Ok(orderItemList);
+            var orderItemDto = _mapper.Map<OrderItemDto>(orderItem);
+
+            return Ok(orderItemDto);
         }
 
         /// <summary>
@@ -78,16 +80,15 @@ namespace Laundry.Api.Controllers
                 return BadRequest();
             }
 
-            var OrderItemEntity = await _context.OrderItems.FindAsync(id);
-            if (OrderItemEntity == null)
+            var orderItemEntity = await _context.OrderItems.FindAsync(id);
+            if (orderItemEntity == null)
             {
                 return NotFound();
             }
 
-            // Map updated fields from DTO to entity
-            _mapper.Map(orderItemDto, OrderItemEntity);
+            _mapper.Map(orderItemDto, orderItemEntity);
 
-            _context.Entry(OrderItemEntity).State = EntityState.Modified;
+            _context.Entry(orderItemEntity).State = EntityState.Modified;
 
             try
             {
@@ -107,6 +108,7 @@ namespace Laundry.Api.Controllers
 
             return NoContent();
         }
+
         /// <summary>
         /// Create a new order item.
         /// </summary>
@@ -125,7 +127,6 @@ namespace Laundry.Api.Controllers
             var createdDto = _mapper.Map<OrderItemDto>(entity);
 
             return CreatedAtAction(nameof(GetOrderItem), new { id = entity.Id }, createdDto);
-
         }
 
         /// <summary>

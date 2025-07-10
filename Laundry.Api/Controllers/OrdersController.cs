@@ -32,7 +32,9 @@ namespace Laundry.Api.Controllers
         [SwaggerResponse(200, "Successfully retrieved list of orders.")]
         public async Task<ActionResult<IEnumerable<OrderDto>>> GetOrders()
         {
-            var orders = await _context.Orders.ToListAsync();
+            var orders = await _context.Orders
+                                       .Include(o => o.OrderItems)
+                                       .ToListAsync();
             var orderDtos = _mapper.Map<List<OrderDto>>(orders);
             return Ok(orderDtos);
         }
@@ -47,15 +49,19 @@ namespace Laundry.Api.Controllers
         [SwaggerResponse(404, "Order not found.")]
         public async Task<ActionResult<OrderDto>> GetOrder(int id)
         {
-            var orderAsync = await _context.Orders.FindAsync(id);//search by orderCode(future)
+            var orderEntity = await _context.Orders
+                                            .Include(o => o.OrderItems)
+                                            .FirstOrDefaultAsync(o => o.Id == id);
 
-            if (orderAsync == null)
+            if (orderEntity == null)
             {
                 return NotFound();
             }
-            var order = _mapper.Map<List<OrderDto>>(orderAsync);
-            return Ok(order);
+
+            var orderDto = _mapper.Map<OrderDto>(orderEntity);
+            return Ok(orderDto);
         }
+
 
         /// <summary>
         /// Update an existing order by ID.
@@ -69,38 +75,57 @@ namespace Laundry.Api.Controllers
         public async Task<IActionResult> PutOrder(int id, OrderDto orderDto)
         {
             if (id != orderDto.Id)
-            {
-                return BadRequest();
-            }
+                return BadRequest("ID mismatch");
 
-            var orderEntity = await _context.Orders.FindAsync(id);
+            var orderEntity = await _context.Orders
+                                            .Include(o => o.OrderItems)
+                                            .FirstOrDefaultAsync(o => o.Id == id);
 
             if (orderEntity == null)
-            {
                 return NotFound();
-            }
 
+            // Map top-level fields
             _mapper.Map(orderDto, orderEntity);
-            _context.Entry(orderEntity).State = EntityState.Modified; 
 
-            try
+            // --- Sync OrderItems manually ---
+            var incomingItems = orderDto.OrderItems ?? new List<OrderItemDto>();
+
+            // Remove deleted items
+            var incomingIds = incomingItems.Select(i => i.Id).ToList();
+            var removedItems = orderEntity.OrderItems
+                                          .Where(e => !incomingIds.Contains(e.Id))
+                                          .ToList();
+
+            foreach (var item in removedItems)
             {
-                await _context.SaveChangesAsync();
+                _context.OrderItems.Remove(item);
             }
-            catch (DbUpdateConcurrencyException)
+
+            // Add or update items
+            foreach (var dto in incomingItems)
             {
-                if (!OrderExists(id))
+                // Avoid updating nested Service object
+                dto.Service = null;
+
+                var existingItem = orderEntity.OrderItems
+                                              .FirstOrDefault(e => e.Id == dto.Id);
+
+                if (existingItem != null)
                 {
-                    return NotFound();
+                    _mapper.Map(dto, existingItem);
                 }
                 else
                 {
-                    throw;
+                    var newItem = _mapper.Map<OrderItem>(dto);
+                    orderEntity.OrderItems.Add(newItem);
                 }
             }
 
+            await _context.SaveChangesAsync();
             return NoContent();
         }
+
+
 
         /// <summary>
         /// Create a new order.
@@ -111,13 +136,27 @@ namespace Laundry.Api.Controllers
         [SwaggerResponse(201, "Order created successfully.")]
         public async Task<ActionResult<OrderDto>> PostOrder(OrderDto orderDto)
         {
+            // Manually nullify nested service objects to prevent tracking issues
+            foreach (var item in orderDto.OrderItems)
+            {
+                item.Service = null;
+            }
+
             var entity = _mapper.Map<Order>(orderDto);
+
+            // Ensure EF Core treats each OrderItem as a new entity
+            foreach (var item in entity.OrderItems)
+            {
+                _context.Entry(item).State = EntityState.Added;
+            }
 
             _context.Orders.Add(entity);
             await _context.SaveChangesAsync();
+
             var createdDto = _mapper.Map<OrderDto>(entity);
             return CreatedAtAction(nameof(GetOrder), new { id = entity.Id }, createdDto);
         }
+
 
         /// <summary>
         /// Delete an existing order by ID.

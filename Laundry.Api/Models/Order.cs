@@ -18,7 +18,7 @@ namespace Laundry.Api.Models
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
-        public DateTime UpdatedAt { get; set; }  // Add this
+        public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
         public PickupTypeEnum PickupType { get; set; } = PickupTypeEnum.None;
         public DeliveryTypeEnum DeliveryType { get; set; } = DeliveryTypeEnum.None;
@@ -49,6 +49,6 @@ namespace Laundry.Api.Models
         public DateTime? CancelledAt { get; set; }
         public string? CancelReason { get; set; }
 
-        public ICollection<OrderItem> OrderItems { get; set; } = [];
+        public ICollection<OrderItem> OrderItems { get; set; } = new List<OrderItem>();
     }
 }

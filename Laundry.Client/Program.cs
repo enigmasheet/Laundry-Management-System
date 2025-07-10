@@ -21,6 +21,7 @@ namespace Laundry.Client
             builder.Services.AddScoped<IVendorService, VendorService>();
             builder.Services.AddScoped<IServiceService, ServiceService>();
             builder.Services.AddScoped<IUserService, UserService>();
+            builder.Services.AddScoped<IOrderService, OrderService>();
 
             // Add Blazor authorization services
             builder.Services.AddAuthorizationCore();

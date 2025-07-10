@@ -18,10 +18,15 @@ namespace Laundry.Api.Data.AutoMapper
                 .ReverseMap()
                 .ForMember(dest => dest.OrderCode, opt => opt.Ignore())
                 .ForMember(dest => dest.FinalAmount, opt => opt.Ignore())
-                .ForMember(dest => dest.IsPaid, opt => opt.Ignore());
+                .ForMember(dest => dest.IsPaid, opt => opt.Ignore())
+                .ForMember(dest => dest.Customer, opt => opt.Ignore())      // 🧠 Add this
+                .ForMember(dest => dest.Vendor, opt => opt.Ignore())        // 🧠 And this
+                .ForMember(dest => dest.OrderItems, opt => opt.Ignore());
 
             // OrderItem Mapping
-            CreateMap<OrderItem, OrderItemDto>().ReverseMap();
+            CreateMap<OrderItem, OrderItemDto>()
+                .ReverseMap()
+                .ForMember(dest => dest.Service, opt => opt.Ignore()); // ✅ Ignore nested Service
 
             // User Mapping
             CreateMap<User, UserDto>()
